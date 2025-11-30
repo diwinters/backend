@@ -11,10 +11,25 @@ import { broadcastToUser } from './websocket.service';
 
 export class DispatcherService {
   /**
+   * Ensure user exists in database, create if not
+   */
+  private async ensureUserExists(did: string, userType: 'rider' | 'driver' | 'both' = 'rider'): Promise<void> {
+    await pool.query(
+      `INSERT INTO users (did, user_type, is_active)
+       VALUES ($1, $2, true)
+       ON CONFLICT (did) DO NOTHING`,
+      [did, userType]
+    );
+  }
+
+  /**
    * Create a new ride request
    */
   async createRide(request: RideBookingRequest): Promise<Ride> {
     try {
+      // Ensure the rider exists in the users table
+      await this.ensureUserExists(request.customerDID, 'rider');
+
       // Insert ride into database
       const result = await pool.query<DBRide>(
         `INSERT INTO rides (
@@ -135,6 +150,9 @@ export class DispatcherService {
    */
   async updateDriverAvailability(update: DriverAvailabilityUpdate): Promise<void> {
     try {
+      // Ensure driver exists in users table
+      await this.ensureUserExists(update.driverDID, 'driver');
+      
       // Upsert driver location
       await pool.query(
         `INSERT INTO driver_locations (driver_did, latitude, longitude, heading, speed, is_available, updated_at)
