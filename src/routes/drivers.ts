@@ -146,7 +146,7 @@ router.post('/accept', async (req: Request, res: Response) => {
 
 /**
  * GET /api/driver/:driverDid/active-rides
- * Get driver's active rides
+ * Get driver's active rides (array)
  */
 router.get('/:driverDid/active-rides', async (req: Request, res: Response) => {
   try {
@@ -163,6 +163,38 @@ router.get('/:driverDid/active-rides', async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: 'Failed to get active rides',
+      details: error instanceof Error ? error.message : String(error),
+    } as ErrorResponse);
+  }
+});
+
+/**
+ * GET /api/driver/:driverDid/active-ride
+ * Get driver's single active ride (returns one ride or 404)
+ */
+router.get('/:driverDid/active-ride', async (req: Request, res: Response) => {
+  try {
+    const { driverDid } = req.params;
+
+    const rides = await dispatcherService.getDriverActiveRides(driverDid);
+
+    if (rides.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'No active ride found',
+      } as ErrorResponse);
+    }
+
+    // Return the first (most recent) active ride
+    res.json({
+      success: true,
+      ride: rides[0],
+    });
+  } catch (error) {
+    console.error('Error getting driver active ride:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get active ride',
       details: error instanceof Error ? error.message : String(error),
     } as ErrorResponse);
   }

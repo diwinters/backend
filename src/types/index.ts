@@ -57,6 +57,11 @@ export interface Ride {
   riderDid: string;
   driverDid?: string;
   
+  // Driver info (populated when assigned)
+  driverName?: string;
+  driverAvatar?: string;
+  driverPhone?: string;
+  
   // Pickup
   pickupLat: number;
   pickupLng: number;
@@ -164,6 +169,8 @@ export interface RideAssignedNotificationPayload {
   rideId: string;
   driverName?: string;
   driverDid: string;
+  driverAvatar?: string;
+  driverPhone?: string;
   estimatedArrival: number;
   recipientDid: string;
 }
@@ -298,6 +305,10 @@ export interface DBRide {
   order_id: string | null;
   rider_did: string;
   driver_did: string | null;
+  // Driver info (populated via JOIN)
+  driver_name?: string | null;
+  driver_avatar?: string | null;
+  driver_phone?: string | null;
   pickup_lat: number;
   pickup_lng: number;
   pickup_address: string | null;

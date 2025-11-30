@@ -199,6 +199,12 @@ export class DispatcherService {
    */
   async assignDriverToRide(rideId: string, driverDid: string): Promise<Ride> {
     try {
+      // Check if driver already has an active ride
+      const activeRides = await this.getDriverActiveRides(driverDid);
+      if (activeRides.length > 0) {
+        throw new Error('Driver already has an active ride');
+      }
+
       // Update ride with driver and status
       const result = await pool.query<DBRide>(
         `UPDATE rides 
@@ -214,12 +220,20 @@ export class DispatcherService {
 
       const ride = this.mapDBRideToRide(result.rows[0]);
 
-      // Get driver info
+      // Get full driver info including avatar and phone
       const driverResult = await pool.query(
-        'SELECT display_name FROM users WHERE did = $1',
+        'SELECT display_name, avatar_url, phone FROM users WHERE did = $1',
         [driverDid]
       );
-      const driverName = driverResult.rows[0]?.display_name;
+      const driverInfo = driverResult.rows[0];
+      const driverName = driverInfo?.display_name || 'Driver';
+      const driverAvatar = driverInfo?.avatar_url;
+      const driverPhone = driverInfo?.phone;
+
+      // Add driver info to ride object
+      ride.driverName = driverName;
+      ride.driverAvatar = driverAvatar;
+      ride.driverPhone = driverPhone;
 
       // Calculate estimated arrival time (simplified - use distance / average speed)
       const nearbyDrivers = await this.findNearbyDrivers(ride.pickupLat, ride.pickupLng);
@@ -228,23 +242,27 @@ export class DispatcherService {
         ? Math.ceil(driver.distanceMeters / 500) // Assume 500m/min average speed
         : 5; // Default 5 minutes
 
-      // Notify rider about assigned driver
+      // Notify rider about assigned driver with full info
       await notificationService.sendNotificationToUser(ride.riderDid, {
         reason: 'ride-assigned',
         rideId: ride.id,
         driverDid,
         driverName,
+        driverAvatar,
+        driverPhone,
         estimatedArrival,
         recipientDid: ride.riderDid,
       });
 
-      // Broadcast to rider via WebSocket
+      // Broadcast to rider via WebSocket with full driver info
       broadcastToUser(ride.riderDid, {
         type: 'ride:assigned',
         payload: {
           rideId: ride.id,
           driverDid,
           driverName,
+          driverAvatar,
+          driverPhone,
           estimatedArrival,
         },
       });
@@ -328,12 +346,18 @@ export class DispatcherService {
   }
 
   /**
-   * Get ride by ID
+   * Get ride by ID (with driver info if assigned)
    */
   async getRideById(rideId: string): Promise<Ride | null> {
     try {
       const result = await pool.query<DBRide>(
-        'SELECT * FROM rides WHERE id = $1',
+        `SELECT r.*, 
+                u.display_name as driver_name, 
+                u.avatar_url as driver_avatar, 
+                u.phone as driver_phone
+         FROM rides r
+         LEFT JOIN users u ON u.did = r.driver_did
+         WHERE r.id = $1`,
         [rideId]
       );
 
@@ -349,15 +373,20 @@ export class DispatcherService {
   }
 
   /**
-   * Get active rides for a driver
+   * Get active rides for a driver (with full driver info)
    */
   async getDriverActiveRides(driverDid: string): Promise<Ride[]> {
     try {
       const result = await pool.query<DBRide>(
-        `SELECT * FROM rides 
-         WHERE driver_did = $1 
-           AND status IN ('accepted', 'driver_arrived', 'in_progress')
-         ORDER BY created_at DESC`,
+        `SELECT r.*, 
+                u.display_name as driver_name, 
+                u.avatar_url as driver_avatar, 
+                u.phone as driver_phone
+         FROM rides r
+         LEFT JOIN users u ON u.did = r.driver_did
+         WHERE r.driver_did = $1 
+           AND r.status IN ('accepted', 'driver_arrived', 'in_progress')
+         ORDER BY r.created_at DESC`,
         [driverDid]
       );
 
@@ -373,6 +402,13 @@ export class DispatcherService {
    */
   async getPendingRidesForDriver(driverDid: string): Promise<Ride[]> {
     try {
+      // Check if driver already has an active ride - if so, return empty
+      const activeRides = await this.getDriverActiveRides(driverDid);
+      if (activeRides.length > 0) {
+        console.log(`[getPendingRides] Driver ${driverDid} has active ride, not showing pending rides`);
+        return [];
+      }
+
       // Get driver's current location
       const driverLocation = await pool.query(
         'SELECT latitude, longitude FROM driver_locations WHERE driver_did = $1 AND is_available = true',
@@ -423,6 +459,9 @@ export class DispatcherService {
       orderId: dbRide.order_id || undefined,
       riderDid: dbRide.rider_did,
       driverDid: dbRide.driver_did || undefined,
+      driverName: dbRide.driver_name || undefined,
+      driverAvatar: dbRide.driver_avatar || undefined,
+      driverPhone: dbRide.driver_phone || undefined,
       pickupLat: dbRide.pickup_lat,
       pickupLng: dbRide.pickup_lng,
       pickupAddress: dbRide.pickup_address || undefined,
