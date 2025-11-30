@@ -12,6 +12,8 @@ import {
   X,
   ChevronDown,
   UserPlus,
+  DollarSign,
+  Map,
 } from 'lucide-react';
 
 interface NavItem {
@@ -22,9 +24,11 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { name: 'Dashboard', path: '/', icon: <LayoutDashboard className="w-5 h-5" /> },
+  { name: 'Live Map', path: '/map', icon: <Map className="w-5 h-5" /> },
   { name: 'Rides', path: '/rides', icon: <MapPin className="w-5 h-5" /> },
   { name: 'Drivers', path: '/drivers', icon: <Car className="w-5 h-5" /> },
   { name: 'Driver Approval', path: '/drivers/approval', icon: <UserPlus className="w-5 h-5" /> },
+  { name: 'Pricing', path: '/pricing', icon: <DollarSign className="w-5 h-5" /> },
   { name: 'Users', path: '/users', icon: <Users className="w-5 h-5" /> },
   { name: 'Debug', path: '/debug', icon: <Bug className="w-5 h-5" /> },
 ];

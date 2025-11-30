@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { pool } from '../config/database';
 import { dispatcherService } from '../services/dispatcher.service';
 import {
   CreateRideRequest,
@@ -15,11 +16,6 @@ const router = Router();
 
 // =============================================================================
 // SCALABLE CITY-BASED PRICING SYSTEM
-// =============================================================================
-// This pricing system is designed to:
-// 1. Start with Dakhla's local taxi pricing as baseline
-// 2. Be competitive with existing taxis while providing value
-// 3. Scale to other Moroccan cities and internationally
 // =============================================================================
 
 interface CityPricing {
@@ -72,164 +68,92 @@ interface CityPricing {
   };
 }
 
-// City pricing configurations
-const CITY_PRICING: Record<string, CityPricing> = {
-  // ===================
-  // DAKHLA - Launch City
-  // ===================
-  // Based on local petit taxi pricing:
-  // - Day: 5 DH for trips < 5km
-  // - Night: 6 DH for trips < 5km  
-  // - Each additional 2km: +1 DH
-  // - Far zones (Port, Universities): 15-20 DH fixed
-  // Our pricing: Slightly competitive, fair for drivers
-  dakhla: {
-    name: 'Dakhla',
-    currency: 'DH',
-    timezone: 'Africa/Casablanca',
-    nightStartHour: 20,  // 8 PM
-    nightEndHour: 6,     // 6 AM
-    
-    ride: {
-      baseFareDay: 4,        // Competitive day fare
-      baseFareNight: 5,      // Competitive night fare
-      baseDistanceKm: 5,     // First 5km included in base
-      perKmAfterBase: 0.4,   // 0.4 DH per km after base
-      perKmInterval: 2,      // Charge applies every 2km
-      minimumFare: 4,        // Minimum 4 DH
-      specialZones: [
-        {
-          name: 'Port de Dakhla',
-          coordinates: { lat: 23.6847, lng: -15.9580 },
-          radiusKm: 2,
-          fixedFare: 12,
-        },
-        {
-          name: 'Université Ibn Zohr - Dakhla',
-          coordinates: { lat: 23.7200, lng: -15.9400 },
-          radiusKm: 1.5,
-          fixedFare: 12,
-        },
-        {
-          name: 'Aéroport Dakhla',
-          coordinates: { lat: 23.7183, lng: -15.9322 },
-          radiusKm: 2,
-          fixedFare: 15,
-        },
-        {
-          name: 'PK25 / Lassarga',
-          coordinates: { lat: 23.5500, lng: -15.9000 },
-          radiusKm: 3,
-          fixedFare: 15,
-        },
-      ],
-    },
-    
-    delivery: {
-      baseFare: 6,           // Competitive delivery base
-      perKm: 0.8,            // 0.8 DH per km
-      packageMultiplier: {
-        small: 1,
-        medium: 1.15,
-        large: 1.3,
-        extra_large: 1.6,
-      },
-      minimumFare: 6,
-    },
-    
-    platformFeePercent: 15,  // 15% platform fee
-    
-    surge: {
-      enabled: false,        // No surge pricing initially
-      maxMultiplier: 1.5,
-    },
+// Default fallback pricing (Dakhla)
+const DEFAULT_PRICING: CityPricing = {
+  name: 'Dakhla',
+  currency: 'DH',
+  timezone: 'Africa/Casablanca',
+  nightStartHour: 20,
+  nightEndHour: 6,
+  ride: {
+    baseFareDay: 4,
+    baseFareNight: 5,
+    baseDistanceKm: 5,
+    perKmAfterBase: 0.4,
+    perKmInterval: 2,
+    minimumFare: 4,
+    specialZones: [],
   },
-  
-  // ===================
-  // CASABLANCA - Future
-  // ===================
-  casablanca: {
-    name: 'Casablanca',
-    currency: 'DH',
-    timezone: 'Africa/Casablanca',
-    nightStartHour: 20,
-    nightEndHour: 6,
-    
-    ride: {
-      baseFareDay: 7,
-      baseFareNight: 8,
-      baseDistanceKm: 3,
-      perKmAfterBase: 2,
-      perKmInterval: 1,
-      minimumFare: 7,
-      specialZones: [
-        {
-          name: 'Aéroport Mohammed V',
-          coordinates: { lat: 33.3675, lng: -7.5898 },
-          radiusKm: 3,
-          fixedFare: 300, // Airport to city
-        },
-      ],
+  delivery: {
+    baseFare: 6,
+    perKm: 0.8,
+    packageMultiplier: {
+      small: 1,
+      medium: 1.15,
+      large: 1.3,
+      extra_large: 1.6,
     },
-    
-    delivery: {
-      baseFare: 15,
-      perKm: 3,
-      packageMultiplier: {
-        small: 1,
-        medium: 1.3,
-        large: 1.6,
-        extra_large: 2.2,
-      },
-      minimumFare: 15,
-    },
-    
-    platformFeePercent: 18,
-    
-    surge: {
-      enabled: true,
-      maxMultiplier: 2.0,
-    },
+    minimumFare: 6,
   },
-  
-  // Default fallback
-  default: {
-    name: 'Default',
-    currency: 'DH',
-    timezone: 'Africa/Casablanca',
-    nightStartHour: 20,
-    nightEndHour: 6,
-    
-    ride: {
-      baseFareDay: 6,
-      baseFareNight: 7,
-      baseDistanceKm: 4,
-      perKmAfterBase: 1,
-      perKmInterval: 1,
-      minimumFare: 6,
-      specialZones: [],
-    },
-    
-    delivery: {
-      baseFare: 10,
-      perKm: 2,
-      packageMultiplier: {
-        small: 1,
-        medium: 1.2,
-        large: 1.5,
-        extra_large: 2,
-      },
-      minimumFare: 10,
-    },
-    
-    platformFeePercent: 15,
-    
-    surge: {
-      enabled: false,
-      maxMultiplier: 1.5,
-    },
+  platformFeePercent: 15,
+  surge: {
+    enabled: false,
+    maxMultiplier: 1.5,
   },
 };
+
+// Cache for pricing configurations
+const pricingCache: Record<string, { config: CityPricing; expiresAt: number }> = {};
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+/**
+ * Get pricing configuration for a city (with caching)
+ */
+async function getCityPricing(citySlug: string): Promise<CityPricing> {
+  // Check cache
+  const cached = pricingCache[citySlug];
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.config;
+  }
+
+  try {
+    // Fetch from DB
+    const result = await pool.query(
+      'SELECT config, name, currency, timezone FROM pricing_configurations WHERE city_slug = $1',
+      [citySlug]
+    );
+
+    let config: CityPricing;
+
+    if (result.rows.length > 0) {
+      const row = result.rows[0];
+      // Merge DB config with metadata
+      config = {
+        ...row.config,
+        name: row.name,
+        currency: row.currency,
+        timezone: row.timezone,
+      };
+    } else {
+      // Fallback to default if not found
+      console.warn(`Pricing not found for ${citySlug}, using default.`);
+      config = DEFAULT_PRICING;
+    }
+
+    // Update cache
+    pricingCache[citySlug] = {
+      config,
+      expiresAt: Date.now() + CACHE_TTL_MS,
+    };
+
+    return config;
+  } catch (error) {
+    console.error('Error fetching pricing config:', error);
+    return DEFAULT_PRICING;
+  }
+}
+
+
 
 /**
  * Calculate distance between two points using Haversine formula
@@ -515,7 +439,7 @@ router.get('/estimate', async (req: Request, res: Response) => {
 
     // Detect city or use requested city
     const city = (requestedCity as string) || detectCity(pickup.lat, pickup.lng);
-    const pricing = CITY_PRICING[city] || CITY_PRICING.default;
+    const pricing = await getCityPricing(city);
 
     // Calculate distance
     const distanceKm = calculateDistance(pickup.lat, pickup.lng, dropoff.lat, dropoff.lng);

@@ -9,6 +9,8 @@ import Drivers from './pages/Drivers';
 import DriversApproval from './pages/DriversApproval';
 import Users from './pages/Users';
 import Debug from './pages/Debug';
+import Pricing from './pages/Pricing';
+import LiveMap from './pages/LiveMap';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { admin, isLoading } = useAuth();
@@ -45,6 +47,8 @@ function AppRoutes() {
                 <Route path="/rides/:id" element={<RideDetail />} />
                 <Route path="/drivers" element={<Drivers />} />
                 <Route path="/drivers/approval" element={<DriversApproval />} />
+                <Route path="/pricing" element={<Pricing />} />
+                <Route path="/map" element={<LiveMap />} />
                 <Route path="/users" element={<Users />} />
                 <Route path="/debug" element={<Debug />} />
               </Routes>

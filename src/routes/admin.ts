@@ -255,6 +255,55 @@ router.put('/password', authenticateAdmin, async (req: AuthRequest, res: Respons
 });
 
 // ============================================
+// DRIVER LOCATIONS ENDPOINT
+// ============================================
+
+/**
+ * GET /api/admin/drivers/locations
+ * Get real-time locations of all online drivers
+ */
+router.get('/drivers/locations', authenticateAdmin, async (_req: AuthRequest, res: Response) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        dl.driver_did,
+        dl.latitude,
+        dl.longitude,
+        dl.heading,
+        dl.speed,
+        dl.updated_at,
+        u.display_name,
+        u.avatar_url,
+        u.driver_role
+      FROM driver_locations dl
+      JOIN users u ON dl.driver_did = u.did
+      WHERE dl.is_available = true
+      AND dl.updated_at > NOW() - INTERVAL '1 hour'
+    `);
+
+    res.json({
+      success: true,
+      drivers: result.rows.map(row => ({
+        did: row.driver_did,
+        location: {
+          lat: row.latitude,
+          lng: row.longitude,
+          heading: row.heading,
+          speed: row.speed
+        },
+        name: row.display_name,
+        avatar: row.avatar_url,
+        role: row.driver_role,
+        lastUpdate: row.updated_at
+      }))
+    });
+  } catch (error) {
+    console.error('Get driver locations error:', error);
+    res.status(500).json({ error: 'Failed to get driver locations' });
+  }
+});
+
+// ============================================
 // DASHBOARD STATISTICS ENDPOINTS
 // ============================================
 
