@@ -14,7 +14,7 @@ const router = Router();
  */
 router.post('/register', async (req: Request, res: Response) => {
   try {
-    const { did, platform, token, appId }: RegisterDeviceRequest = req.body;
+    const { did, platform, token, appId, displayName, avatarUrl, phone }: RegisterDeviceRequest = req.body;
 
     // Validate request
     if (!did || !platform || !token) {
@@ -31,13 +31,18 @@ router.post('/register', async (req: Request, res: Response) => {
       } as ErrorResponse);
     }
 
-    // Ensure user exists
+    // Ensure user exists and update profile data from Bluesky
     const userResult = await pool.query(
-      `INSERT INTO users (did, user_type, is_active)
-       VALUES ($1, 'rider', true)
-       ON CONFLICT (did) DO UPDATE SET is_active = true
+      `INSERT INTO users (did, user_type, is_active, display_name, avatar_url, phone, updated_at)
+       VALUES ($1, 'rider', true, $2, $3, $4, NOW())
+       ON CONFLICT (did) DO UPDATE SET 
+         is_active = true,
+         display_name = COALESCE(EXCLUDED.display_name, users.display_name),
+         avatar_url = COALESCE(EXCLUDED.avatar_url, users.avatar_url),
+         phone = COALESCE(EXCLUDED.phone, users.phone),
+         updated_at = NOW()
        RETURNING id`,
-      [did]
+      [did, displayName || null, avatarUrl || null, phone || null]
     );
 
     const userId = userResult.rows[0].id;

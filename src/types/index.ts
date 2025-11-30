@@ -215,6 +215,9 @@ export interface RegisterDeviceRequest {
   platform: 'ios' | 'android';
   token: string;
   appId?: string;
+  displayName?: string;
+  avatarUrl?: string;
+  phone?: string;
 }
 
 export interface RegisterDeviceResponse {

@@ -374,7 +374,13 @@ router.get('/rides', authenticateAdmin, async (req: AuthRequest, res: Response) 
     const result = await pool.query(
       `SELECT r.*, 
               u1.display_name as rider_name,
-              u2.display_name as driver_name
+              u1.avatar_url as rider_avatar,
+              u1.phone as rider_phone,
+              u1.user_type as rider_type,
+              u2.display_name as driver_name,
+              u2.avatar_url as driver_avatar,
+              u2.phone as driver_phone,
+              u2.user_type as driver_type
        FROM rides r
        LEFT JOIN users u1 ON r.rider_did = u1.did
        LEFT JOIN users u2 ON r.driver_did = u2.did
@@ -411,8 +417,8 @@ router.get('/rides/:id', authenticateAdmin, async (req: AuthRequest, res: Respon
     const [ride, history] = await Promise.all([
       pool.query(
         `SELECT r.*, 
-                u1.display_name as rider_name, u1.phone as rider_phone,
-                u2.display_name as driver_name, u2.phone as driver_phone
+                u1.display_name as rider_name, u1.phone as rider_phone, u1.avatar_url as rider_avatar, u1.user_type as rider_type,
+                u2.display_name as driver_name, u2.phone as driver_phone, u2.avatar_url as driver_avatar, u2.user_type as driver_type
          FROM rides r
          LEFT JOIN users u1 ON r.rider_did = u1.did
          LEFT JOIN users u2 ON r.driver_did = u2.did
@@ -482,9 +488,21 @@ router.get('/drivers', authenticateAdmin, async (req: AuthRequest, res: Response
 
     const result = await pool.query(query, params);
 
+    // Enhance driver data with full user info
+    const driversWithInfo = result.rows.map(driver => ({
+      ...driver,
+      user_info: {
+        did: driver.did,
+        display_name: driver.name,
+        avatar_url: driver.avatar,
+        phone: driver.phone,
+        user_type: driver.user_type,
+      }
+    }));
+
     res.json({
       success: true,
-      drivers: result.rows,
+      drivers: driversWithInfo,
       pagination: {
         page,
         limit,
@@ -506,7 +524,7 @@ router.get('/drivers/locations', authenticateAdmin, async (_req: AuthRequest, re
   try {
     const result = await pool.query(`
       SELECT dl.driver_did, dl.latitude, dl.longitude, dl.heading, dl.speed, dl.updated_at,
-             u.display_name as name, u.avatar_url as avatar
+             u.display_name as name, u.avatar_url as avatar, u.phone, u.user_type
       FROM driver_locations dl
       JOIN users u ON dl.driver_did = u.did
       WHERE dl.is_available = true
@@ -549,9 +567,11 @@ router.get('/users', authenticateAdmin, async (req: AuthRequest, res: Response) 
 
     params.push(limit, offset);
     const result = await pool.query(
-      `SELECT u.did, u.display_name as name, u.phone, u.avatar_url as avatar, u.user_type, u.created_at,
+      `SELECT u.did, u.display_name as name, u.phone, u.avatar_url as avatar, u.user_type, u.is_active, u.created_at, u.updated_at,
               (SELECT COUNT(*) FROM rides WHERE rider_did = u.did) as total_rides,
-              (SELECT COUNT(*) FROM rides WHERE rider_did = u.did AND status = 'completed') as completed_rides
+              (SELECT COUNT(*) FROM rides WHERE rider_did = u.did AND status = 'completed') as completed_rides,
+              (SELECT COUNT(*) FROM rides WHERE driver_did = u.did) as total_drives,
+              (SELECT COUNT(*) FROM rides WHERE driver_did = u.did AND status = 'completed') as completed_drives
        FROM users u
        ${whereClause}
        ORDER BY u.created_at DESC
