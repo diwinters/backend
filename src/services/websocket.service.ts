@@ -5,50 +5,94 @@ import { dispatcherService } from './dispatcher.service';
 // Store connected clients by DID
 const clients = new Map<string, Set<WebSocket>>();
 
+// Extended WebSocket interface with heartbeat tracking
+interface ExtendedWebSocket extends WebSocket {
+  isAlive: boolean;
+  userDid?: string;
+}
+
+// Heartbeat interval (30 seconds)
+const HEARTBEAT_INTERVAL = 30000;
+// Connection timeout if no pong received (10 seconds after ping)
+const PONG_TIMEOUT = 10000;
+
 export function initializeWebSocketServer(server: any) {
   const wss = new WebSocket.Server({ server, path: '/ws' });
 
+  // Server-side heartbeat to detect dead connections
+  const heartbeatInterval = setInterval(() => {
+    wss.clients.forEach((ws) => {
+      const extWs = ws as ExtendedWebSocket;
+      
+      if (extWs.isAlive === false) {
+        // Connection didn't respond to last ping - terminate it
+        console.log(`Terminating dead connection${extWs.userDid ? ` for ${extWs.userDid}` : ''}`);
+        return extWs.terminate();
+      }
+      
+      // Mark as not alive, will be set to true when pong received
+      extWs.isAlive = false;
+      
+      // Send ping (WebSocket protocol level ping, not app level)
+      extWs.ping();
+    });
+  }, HEARTBEAT_INTERVAL);
+
+  wss.on('close', () => {
+    clearInterval(heartbeatInterval);
+    console.log('WebSocket server closed');
+  });
+
   wss.on('connection', (ws: WebSocket) => {
+    const extWs = ws as ExtendedWebSocket;
+    extWs.isAlive = true;
+    
     console.log('New WebSocket connection');
 
-    let userDid: string | null = null;
+    // Handle pong response (protocol level)
+    extWs.on('pong', () => {
+      extWs.isAlive = true;
+    });
 
-    ws.on('message', async (data: WebSocket.Data) => {
+    extWs.on('message', async (data: WebSocket.Data) => {
       try {
         const message: WSMessage = JSON.parse(data.toString());
-        await handleWebSocketMessage(ws, message, (did) => {
-          userDid = did;
+        await handleWebSocketMessage(extWs, message, (did) => {
+          extWs.userDid = did;
         });
       } catch (error) {
         console.error('Error handling WebSocket message:', error);
-        ws.send(JSON.stringify({
+        extWs.send(JSON.stringify({
           type: 'error',
           payload: { message: 'Invalid message format' },
         }));
       }
     });
 
-    ws.on('close', () => {
-      console.log('WebSocket connection closed');
-      if (userDid) {
-        removeClient(userDid, ws);
+    extWs.on('close', (code, reason) => {
+      console.log(`WebSocket connection closed. Code: ${code}, Reason: ${reason || 'none'}`);
+      if (extWs.userDid) {
+        removeClient(extWs.userDid, extWs);
       }
     });
 
-    ws.on('error', (error) => {
+    extWs.on('error', (error) => {
       console.error('WebSocket error:', error);
     });
   });
 
-  console.log('✓ WebSocket server initialized on /ws');
+  console.log('✓ WebSocket server initialized on /ws with heartbeat');
   return wss;
 }
 
 async function handleWebSocketMessage(
-  ws: WebSocket,
+  ws: ExtendedWebSocket,
   message: WSMessage,
   setUserDid: (did: string) => void
 ) {
+  // Any message received means connection is alive
+  ws.isAlive = true;
+  
   switch (message.type) {
     case 'auth':
       // Authenticate user and store connection
