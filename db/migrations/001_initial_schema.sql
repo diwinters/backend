@@ -83,7 +83,7 @@ CREATE TABLE rides (
 -- Driver locations table - stores real-time driver GPS coordinates
 CREATE TABLE driver_locations (
     id SERIAL PRIMARY KEY,
-    driver_did VARCHAR(255) NOT NULL REFERENCES users(did),
+    driver_did VARCHAR(255) NOT NULL UNIQUE REFERENCES users(did),
     latitude DOUBLE PRECISION NOT NULL,
     longitude DOUBLE PRECISION NOT NULL,
     location GEOGRAPHY(POINT, 4326), -- PostGIS geography type for efficient spatial queries
