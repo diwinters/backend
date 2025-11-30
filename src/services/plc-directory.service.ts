@@ -48,7 +48,7 @@ export async function resolveDID(did: string): Promise<DIDDocument | null> {
       throw new Error(`PLC Directory returned ${response.status}`);
     }
     
-    const didDoc = await response.json();
+    const didDoc = await response.json() as DIDDocument;
     return didDoc;
   } catch (error) {
     console.error('Error resolving DID:', error);
