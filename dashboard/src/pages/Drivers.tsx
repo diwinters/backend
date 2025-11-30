@@ -2,14 +2,12 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../lib/api';
 import {
-  Search,
   ChevronLeft,
   ChevronRight,
   Car,
   MapPin,
   CheckCircle,
   XCircle,
-  Clock,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 

@@ -6,7 +6,6 @@ import {
   ChevronLeft,
   ChevronRight,
   User,
-  MapPin,
   Car,
 } from 'lucide-react';
 import { format } from 'date-fns';

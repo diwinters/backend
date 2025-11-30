@@ -11,7 +11,6 @@ import {
   Phone,
   History,
   AlertCircle,
-  CheckCircle,
   XCircle,
   UserPlus,
 } from 'lucide-react';

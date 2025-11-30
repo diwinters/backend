@@ -1,11 +1,5 @@
 const API_BASE = '/api/admin';
 
-interface ApiResponse<T> {
-  success: boolean;
-  error?: string;
-  [key: string]: any;
-}
-
 class ApiClient {
   private token: string | null = null;
 

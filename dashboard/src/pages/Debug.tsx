@@ -6,7 +6,6 @@ import {
   XCircle,
   Database,
   Cpu,
-  HardDrive,
   Clock,
   Bell,
   Smartphone,

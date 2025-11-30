@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import {
   Car,
-  Users,
   MapPin,
   DollarSign,
   Clock,
