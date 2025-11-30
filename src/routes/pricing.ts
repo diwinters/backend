@@ -8,7 +8,7 @@ const router = Router();
  * GET /api/pricing
  * Get all pricing configurations
  */
-router.get('/', authenticateAdmin, async (req: Request, res: Response) => {
+router.get('/', authenticateAdmin, async (_req: Request, res: Response) => {
   try {
     const result = await pool.query(
       'SELECT * FROM pricing_configurations ORDER BY name ASC'

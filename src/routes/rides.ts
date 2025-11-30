@@ -734,7 +734,7 @@ router.get('/:rideId/receipt', async (req: Request, res: Response) => {
         total,
         payment_method: 'Cash',
         driver_name: ride.driverName || 'Unknown',
-        driver_rating: ride.driverRating || null,
+        driver_rating: ride.rating || null,
         created_at: ride.createdAt,
         completed_at: ride.completedAt,
       },

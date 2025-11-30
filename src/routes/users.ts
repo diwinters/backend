@@ -214,7 +214,7 @@ router.get('/:did/rides', async (req: Request, res: Response) => {
       `SELECT COUNT(*) FROM rides 
        WHERE (rider_did = $1 OR driver_did = $1)
        ${statusCondition}`,
-      statusFilter ? [did, statuses] : [did]
+      statusFilter ? [did, statusFilter.split(',')] : [did]
     );
 
     // Get rides with driver/rider info
