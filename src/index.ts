@@ -1,12 +1,14 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
 import { createServer } from 'http';
 import { initializeDatabase, closeDatabase } from './config/database';
 import { initializeWebSocketServer } from './services/websocket.service';
 import usersRouter from './routes/users';
 import ridesRouter from './routes/rides';
 import driversRouter from './routes/drivers';
+import adminRouter from './routes/admin';
 
 // Load environment variables
 dotenv.config();
@@ -45,6 +47,16 @@ app.get('/health', (_req: Request, res: Response) => {
 app.use('/api/users', usersRouter);
 app.use('/api/rides', ridesRouter);
 app.use('/api/driver', driversRouter);
+app.use('/api/admin', adminRouter);
+
+// Serve admin dashboard static files
+const dashboardPath = path.join(__dirname, '../dashboard/dist');
+app.use('/admin', express.static(dashboardPath));
+
+// SPA fallback for admin dashboard - serve index.html for all non-API routes under /admin
+app.get('/admin/*', (_req: Request, res: Response) => {
+  res.sendFile(path.join(dashboardPath, 'index.html'));
+});
 
 // 404 handler
 app.use((req: Request, res: Response) => {
