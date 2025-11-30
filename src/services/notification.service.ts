@@ -91,7 +91,7 @@ export class NotificationService {
       for (const token of tokens) {
         if (Expo.isExpoPushToken(token)) {
           expoTokens.push(token);
-        } else if (token && token.length > 20) {
+        } else if (token && (token as string).length > 20) {
           // Native FCM/APNs tokens are typically longer strings
           fcmTokens.push(token);
         }
