@@ -213,7 +213,11 @@ export default function Rides() {
                     </td>
                     <td className="px-4 py-3">
                       <span className="text-sm font-medium text-gray-900">
-                        {(ride.final_price || ride.estimated_price).toFixed(2)} MAD
+                        {ride.final_price != null 
+                          ? `${ride.final_price.toFixed(2)} MAD`
+                          : ride.estimated_price != null
+                          ? `${ride.estimated_price.toFixed(2)} MAD`
+                          : '-'}
                       </span>
                     </td>
                     <td className="px-4 py-3">
