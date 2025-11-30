@@ -188,4 +188,72 @@ router.get('/:did/driver-status', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * GET /api/users/:did/rides
+ * Get ride history for a user (as rider or driver)
+ */
+router.get('/:did/rides', async (req: Request, res: Response) => {
+  try {
+    const { did } = req.params;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
+    const offset = (page - 1) * limit;
+    const statusFilter = req.query.status as string;
+
+    let statusCondition = '';
+    const params: any[] = [did, limit, offset];
+
+    if (statusFilter) {
+      const statuses = statusFilter.split(',');
+      statusCondition = `AND status = ANY($4)`;
+      params.push(statuses);
+    }
+
+    // Count total rides
+    const countResult = await pool.query(
+      `SELECT COUNT(*) FROM rides 
+       WHERE (rider_did = $1 OR driver_did = $1)
+       ${statusCondition}`,
+      statusFilter ? [did, statuses] : [did]
+    );
+
+    // Get rides with driver/rider info
+    const result = await pool.query(
+      `SELECT r.*,
+              u1.display_name as rider_name,
+              u2.display_name as driver_name,
+              u2.phone as driver_phone,
+              CASE 
+                WHEN booking_type = 'delivery' THEN 'delivery'
+                ELSE 'ride'
+              END as ride_type
+       FROM rides r
+       LEFT JOIN users u1 ON r.rider_did = u1.did
+       LEFT JOIN users u2 ON r.driver_did = u2.did
+       WHERE (r.rider_did = $1 OR r.driver_did = $1)
+       ${statusCondition}
+       ORDER BY r.created_at DESC
+       LIMIT $2 OFFSET $3`,
+      params
+    );
+
+    res.json({
+      success: true,
+      rides: result.rows,
+      pagination: {
+        page,
+        limit,
+        total: parseInt(countResult.rows[0].count),
+        totalPages: Math.ceil(parseInt(countResult.rows[0].count) / limit),
+      },
+    });
+  } catch (error) {
+    console.error('Error getting user rides:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get rides',
+    } as ErrorResponse);
+  }
+});
+
 export default router;

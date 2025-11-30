@@ -488,6 +488,32 @@ export class DispatcherService {
       rating: dbRide.rating || undefined,
     };
   }
+
+  /**
+   * Submit rating for a completed ride
+   */
+  async rateRide(rideId: string, rating: number, feedback?: string): Promise<void> {
+    try {
+      const result = await pool.query(
+        `UPDATE rides 
+         SET rating = $1, 
+             rider_feedback = $2,
+             updated_at = CURRENT_TIMESTAMP
+         WHERE id = $3 AND status = 'completed'
+         RETURNING id`,
+        [rating, feedback || null, rideId]
+      );
+
+      if (result.rows.length === 0) {
+        throw new Error('Ride not found or not completed');
+      }
+
+      console.log(`Ride ${rideId} rated ${rating} stars`);
+    } catch (error) {
+      console.error('Error rating ride:', error);
+      throw error;
+    }
+  }
 }
 
 // Singleton instance

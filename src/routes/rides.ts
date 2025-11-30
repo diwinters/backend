@@ -762,4 +762,114 @@ router.delete('/:rideId', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * GET /api/rides/:rideId/receipt
+ * Get detailed ride receipt with fare breakdown
+ */
+router.get('/:rideId/receipt', async (req: Request, res: Response) => {
+  try {
+    const { rideId } = req.params;
+
+    const ride = await dispatcherService.getRideById(rideId);
+    if (!ride) {
+      return res.status(404).json({
+        success: false,
+        error: 'Ride not found',
+      } as ErrorResponse);
+    }
+
+    // Calculate distance and duration
+    const distance = ride.estimatedPrice ? (ride.estimatedPrice / 10) : 5; // Rough estimate
+    const duration = ride.completedAt 
+      ? Math.round((new Date(ride.completedAt).getTime() - new Date(ride.createdAt).getTime()) / 60000)
+      : 20;
+
+    // Fare breakdown (simplified - you can enhance this with real calculation)
+    const baseFare = 7;
+    const distanceFare = distance * 1.5;
+    const timeFare = duration * 0.3;
+    const nightSurcharge = 0;
+    const total = ride.finalPrice || ride.estimatedPrice || (baseFare + distanceFare + timeFare);
+
+    res.json({
+      success: true,
+      receipt: {
+        id: ride.id,
+        pickup_address: ride.pickupAddress,
+        dropoff_address: ride.dropoffAddress,
+        pickup_lat: ride.pickupLat,
+        pickup_lng: ride.pickupLng,
+        dropoff_lat: ride.dropoffLat,
+        dropoff_lng: ride.dropoffLng,
+        distance_km: distance,
+        duration_minutes: duration,
+        base_fare: baseFare,
+        distance_fare: distanceFare,
+        time_fare: timeFare,
+        night_surcharge: nightSurcharge,
+        total,
+        payment_method: 'Cash',
+        driver_name: ride.driverName || 'Unknown',
+        driver_rating: ride.driverRating || null,
+        created_at: ride.createdAt,
+        completed_at: ride.completedAt,
+      },
+    });
+  } catch (error) {
+    console.error('Error getting ride receipt:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get ride receipt',
+    } as ErrorResponse);
+  }
+});
+
+/**
+ * POST /api/rides/:rideId/rate
+ * Rate a completed ride
+ */
+router.post('/:rideId/rate', async (req: Request, res: Response) => {
+  try {
+    const { rideId } = req.params;
+    const { rating, feedback } = req.body;
+
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({
+        success: false,
+        error: 'Rating must be between 1 and 5',
+      } as ErrorResponse);
+    }
+
+    const ride = await dispatcherService.getRideById(rideId);
+    if (!ride) {
+      return res.status(404).json({
+        success: false,
+        error: 'Ride not found',
+      } as ErrorResponse);
+    }
+
+    if (ride.status !== 'completed') {
+      return res.status(400).json({
+        success: false,
+        error: 'Can only rate completed rides',
+      } as ErrorResponse);
+    }
+
+    // Update ride with rating
+    await dispatcherService.rateRide(rideId, rating, feedback);
+
+    res.json({
+      success: true,
+      message: 'Rating submitted successfully',
+    });
+  } catch (error) {
+    console.error('Error rating ride:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to rate ride',
+    } as ErrorResponse);
+  }
+});
+
 export default router;
+
