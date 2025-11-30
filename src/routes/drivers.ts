@@ -169,6 +169,35 @@ router.get('/:driverDid/active-rides', async (req: Request, res: Response) => {
 });
 
 /**
+ * GET /api/driver/:driverDid/pending-rides
+ * Get pending rides available for driver to accept
+ */
+router.get('/:driverDid/pending-rides', async (req: Request, res: Response) => {
+  try {
+    const { driverDid } = req.params;
+
+    console.log(`[API] Getting pending rides for driver: ${driverDid}`);
+
+    const rides = await dispatcherService.getPendingRidesForDriver(driverDid);
+
+    console.log(`[API] Found ${rides.length} pending rides for driver ${driverDid}`);
+
+    res.json({
+      success: true,
+      rides,
+      count: rides.length,
+    });
+  } catch (error) {
+    console.error('Error getting pending rides for driver:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get pending rides',
+      details: error instanceof Error ? error.message : String(error),
+    } as ErrorResponse);
+  }
+});
+
+/**
  * GET /api/driver/nearby
  * Find nearby available drivers (for testing/debugging)
  */

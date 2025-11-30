@@ -369,6 +369,52 @@ export class DispatcherService {
   }
 
   /**
+   * Get pending/offered rides near a driver
+   */
+  async getPendingRidesForDriver(driverDid: string): Promise<Ride[]> {
+    try {
+      // Get driver's current location
+      const driverLocation = await pool.query(
+        'SELECT latitude, longitude FROM driver_locations WHERE driver_did = $1 AND is_available = true',
+        [driverDid]
+      );
+
+      if (driverLocation.rows.length === 0) {
+        console.log(`[getPendingRides] Driver ${driverDid} not available or location unknown`);
+        return [];
+      }
+
+      const { latitude, longitude } = driverLocation.rows[0];
+
+      // Find pending/offered rides within 10km of driver
+      const result = await pool.query<DBRide>(
+        `SELECT r.*, 
+                ST_Distance(
+                  ST_SetSRID(ST_MakePoint($2, $1), 4326)::geography,
+                  ST_SetSRID(ST_MakePoint(r.pickup_lng, r.pickup_lat), 4326)::geography
+                ) as distance_meters
+         FROM rides r
+         WHERE r.status IN ('pending', 'offered')
+           AND ST_DWithin(
+             ST_SetSRID(ST_MakePoint($2, $1), 4326)::geography,
+             ST_SetSRID(ST_MakePoint(r.pickup_lng, r.pickup_lat), 4326)::geography,
+             10000
+           )
+         ORDER BY distance_meters ASC
+         LIMIT 20`,
+        [latitude, longitude]
+      );
+
+      console.log(`[getPendingRides] Found ${result.rows.length} pending rides for driver ${driverDid}`);
+
+      return result.rows.map(row => this.mapDBRideToRide(row));
+    } catch (error) {
+      console.error('Error getting pending rides for driver:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Map database row to Ride object
    */
   private mapDBRideToRide(dbRide: DBRide): Ride {
