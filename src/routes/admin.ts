@@ -260,7 +260,7 @@ router.put('/password', authenticateAdmin, async (req: AuthRequest, res: Respons
  * GET /api/admin/stats/overview
  * Get dashboard overview stats
  */
-router.get('/stats/overview', authenticateAdmin, async (req: AuthRequest, res: Response) => {
+router.get('/stats/overview', authenticateAdmin, async (_req: AuthRequest, res: Response) => {
   try {
     // Get counts in parallel
     const [
@@ -501,7 +501,7 @@ router.get('/drivers', authenticateAdmin, async (req: AuthRequest, res: Response
  * GET /api/admin/drivers/locations
  * Get all online driver locations (for map)
  */
-router.get('/drivers/locations', authenticateAdmin, async (req: AuthRequest, res: Response) => {
+router.get('/drivers/locations', authenticateAdmin, async (_req: AuthRequest, res: Response) => {
   try {
     const result = await pool.query(`
       SELECT dl.driver_did, dl.latitude, dl.longitude, dl.heading, dl.speed, dl.updated_at,
@@ -670,7 +670,7 @@ router.post('/rides/:id/cancel', authenticateAdmin, async (req: AuthRequest, res
  * GET /api/admin/debug/websocket
  * Get WebSocket connection status
  */
-router.get('/debug/websocket', authenticateAdmin, async (req: AuthRequest, res: Response) => {
+router.get('/debug/websocket', authenticateAdmin, async (_req: AuthRequest, res: Response) => {
   // This will be populated by the WebSocket service
   res.json({
     success: true,
@@ -682,7 +682,7 @@ router.get('/debug/websocket', authenticateAdmin, async (req: AuthRequest, res: 
  * GET /api/admin/debug/notifications
  * Get recent notification logs
  */
-router.get('/debug/notifications', authenticateAdmin, async (req: AuthRequest, res: Response) => {
+router.get('/debug/notifications', authenticateAdmin, async (_req: AuthRequest, res: Response) => {
   try {
     const result = await pool.query(`
       SELECT ud.device_token, ud.platform, ud.is_active, ud.last_seen,
@@ -708,7 +708,7 @@ router.get('/debug/notifications', authenticateAdmin, async (req: AuthRequest, r
  * GET /api/admin/debug/health
  * System health check
  */
-router.get('/debug/health', authenticateAdmin, async (req: AuthRequest, res: Response) => {
+router.get('/debug/health', authenticateAdmin, async (_req: AuthRequest, res: Response) => {
   try {
     // Check database
     const dbStart = Date.now();
