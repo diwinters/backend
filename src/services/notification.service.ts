@@ -1,6 +1,27 @@
 import { Expo, ExpoPushMessage, ExpoPushTicket } from 'expo-server-sdk';
+import * as admin from 'firebase-admin';
 import { pool } from '../config/database';
 import { NotificationPayload } from '../types';
+
+// Initialize Firebase Admin SDK if credentials are available
+let firebaseInitialized = false;
+try {
+  if (process.env.FIREBASE_PROJECT_ID) {
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      }),
+    });
+    firebaseInitialized = true;
+    console.log('[NotificationService] Firebase Admin SDK initialized');
+  } else {
+    console.log('[NotificationService] Firebase credentials not configured, using Expo fallback');
+  }
+} catch (error) {
+  console.warn('[NotificationService] Firebase init failed:', error);
+}
 
 export class NotificationService {
   private expo: Expo;
@@ -8,7 +29,7 @@ export class NotificationService {
   constructor() {
     this.expo = new Expo({
       accessToken: process.env.EXPO_ACCESS_TOKEN,
-      useFcmV1: true, // Use FCM v1 API
+      useFcmV1: true,
     });
   }
 
@@ -41,6 +62,7 @@ export class NotificationService {
 
   /**
    * Send push notification to specific device tokens
+   * Supports both Expo Push Tokens and native FCM/APNs tokens
    */
   async sendNotificationToTokens(
     tokens: string[],
@@ -49,74 +71,141 @@ export class NotificationService {
     try {
       console.log(`[NotificationService] Attempting to send to ${tokens.length} tokens`);
       
-      // Filter out invalid tokens and log them
-      const validTokens: string[] = [];
-      const invalidTokens: string[] = [];
+      // Separate Expo tokens from native FCM tokens
+      const expoTokens: string[] = [];
+      const fcmTokens: string[] = [];
       
       for (const token of tokens) {
         if (Expo.isExpoPushToken(token)) {
-          validTokens.push(token);
-        } else {
-          invalidTokens.push(token);
+          expoTokens.push(token);
+        } else if (token && token.length > 20) {
+          // Native FCM/APNs tokens are typically longer strings
+          fcmTokens.push(token);
         }
       }
       
-      if (invalidTokens.length > 0) {
-        console.warn(`[NotificationService] ${invalidTokens.length} invalid tokens found:`, 
-          invalidTokens.map(t => t.substring(0, 30) + '...'));
-      }
+      console.log(`[NotificationService] Token breakdown: ${expoTokens.length} Expo, ${fcmTokens.length} FCM/native`);
 
-      if (validTokens.length === 0) {
-        console.warn('[NotificationService] No valid Expo push tokens provided');
-        return false;
-      }
-      
-      console.log(`[NotificationService] Sending to ${validTokens.length} valid Expo tokens`);
-
-      // Build notification message based on payload type
+      // Build notification message
       const { title, body, data } = this.buildNotificationMessage(payload);
-      
-      // Get the appropriate Android notification channel based on payload reason
       const channelId = this.getChannelIdForReason(payload.reason);
+      
+      let successCount = 0;
 
-      // Create messages for each token
-      const messages: ExpoPushMessage[] = validTokens.map(token => ({
+      // Send to Expo tokens if any
+      if (expoTokens.length > 0) {
+        const expoSuccess = await this.sendViaExpo(expoTokens, title, body, data, channelId);
+        if (expoSuccess) successCount++;
+      }
+
+      // Send to native FCM tokens if Firebase is configured
+      if (fcmTokens.length > 0) {
+        const fcmSuccess = await this.sendViaFCM(fcmTokens, title, body, data, channelId);
+        if (fcmSuccess) successCount++;
+      }
+
+      return successCount > 0;
+    } catch (error) {
+      console.error('Error sending push notifications:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Send via Expo Push Service
+   */
+  private async sendViaExpo(
+    tokens: string[],
+    title: string,
+    body: string,
+    data: any,
+    channelId: string
+  ): Promise<boolean> {
+    try {
+      const messages: ExpoPushMessage[] = tokens.map(token => ({
         to: token,
         sound: 'default',
         title,
         body,
         data,
         priority: 'high',
-        channelId, // Use the appropriate channel for the notification type
+        channelId,
       }));
-      
-      console.log(`[NotificationService] Sending notification: "${title}" via channel "${channelId}"`);
 
-      // Send notifications in chunks
       const chunks = this.expo.chunkPushNotifications(messages);
       const tickets: ExpoPushTicket[] = [];
 
       for (const chunk of chunks) {
-        try {
-          const ticketChunk = await this.expo.sendPushNotificationsAsync(chunk);
-          console.log(`[NotificationService] Sent chunk, tickets:`, ticketChunk.map((t: ExpoPushTicket) => t.status));
-          tickets.push(...ticketChunk);
-        } catch (error) {
-          console.error('Error sending notification chunk:', error);
-        }
+        const ticketChunk = await this.expo.sendPushNotificationsAsync(chunk);
+        tickets.push(...ticketChunk);
       }
 
-      // Check for errors in tickets
-      const errors = tickets.filter(ticket => ticket.status === 'error');
-      if (errors.length > 0) {
-        console.error('Push notification errors:', errors);
-      }
+      const errors = tickets.filter(t => t.status === 'error');
+      console.log(`[NotificationService] Expo: ${tickets.length - errors.length}/${tickets.length} successful`);
       
-      console.log(`[NotificationService] Push result: ${tickets.length - errors.length}/${tickets.length} successful`);
-
-      return errors.length < tickets.length; // Success if at least one notification sent
+      return errors.length < tickets.length;
     } catch (error) {
-      console.error('Error sending push notifications:', error);
+      console.error('[NotificationService] Expo send error:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Send via Firebase Cloud Messaging (for native FCM tokens)
+   */
+  private async sendViaFCM(
+    tokens: string[],
+    title: string,
+    body: string,
+    data: any,
+    channelId: string
+  ): Promise<boolean> {
+    if (!firebaseInitialized) {
+      console.warn('[NotificationService] Firebase not initialized, skipping FCM send');
+      return false;
+    }
+
+    try {
+      const message: admin.messaging.MulticastMessage = {
+        tokens,
+        notification: {
+          title,
+          body,
+        },
+        data: Object.fromEntries(
+          Object.entries(data).map(([k, v]) => [k, String(v)])
+        ),
+        android: {
+          priority: 'high',
+          notification: {
+            channelId,
+            sound: 'default',
+          },
+        },
+        apns: {
+          payload: {
+            aps: {
+              sound: 'default',
+              badge: 1,
+            },
+          },
+        },
+      };
+
+      const response = await admin.messaging().sendEachForMulticast(message);
+      console.log(`[NotificationService] FCM: ${response.successCount}/${tokens.length} successful`);
+      
+      if (response.failureCount > 0) {
+        response.responses.forEach((resp, idx) => {
+          if (!resp.success) {
+            console.error(`[NotificationService] FCM error for token ${idx}:`, resp.error);
+          }
+        });
+      }
+
+      return response.successCount > 0;
+    } catch (error) {
+      console.error('[NotificationService] FCM send error:', error);
       return false;
     }
   }
