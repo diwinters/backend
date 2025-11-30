@@ -1,0 +1,43 @@
+{
+  "name": "raceef-backend",
+  "version": "1.0.0",
+  "description": "Production backend API for Raceef ride-hailing service",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "nodemon --exec ts-node src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "db:migrate": "psql $DATABASE_URL -f db/migrations/001_initial_schema.sql",
+    "lint": "eslint src --ext .ts",
+    "test": "jest"
+  },
+  "keywords": ["ride-hailing", "api", "websocket", "push-notifications"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "pg": "^8.11.3",
+    "ws": "^8.16.0",
+    "expo-server-sdk": "^3.7.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.6",
+    "@types/pg": "^8.10.9",
+    "@types/ws": "^8.5.10",
+    "@types/cors": "^2.8.17",
+    "@types/uuid": "^9.0.7",
+    "typescript": "^5.3.3",
+    "nodemon": "^3.0.2",
+    "ts-node": "^10.9.2",
+    "eslint": "^8.56.0",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
