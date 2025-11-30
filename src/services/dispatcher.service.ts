@@ -291,15 +291,15 @@ export class DispatcherService {
     notes?: string
   ): Promise<Ride> {
     try {
-      // Update ride status
+      // Update ride status - use separate parameters to avoid PostgreSQL type inference issues
       const result = await pool.query<DBRide>(
         `UPDATE rides 
-         SET status = $1,
-             started_at = CASE WHEN $1 = 'in_progress' THEN NOW() ELSE started_at END,
-             completed_at = CASE WHEN $1 = 'completed' THEN NOW() ELSE completed_at END,
-             cancelled_at = CASE WHEN $1 = 'cancelled' THEN NOW() ELSE cancelled_at END,
-             cancellation_reason = CASE WHEN $1 = 'cancelled' THEN $3 ELSE cancellation_reason END
-         WHERE id = $2
+         SET status = $1::text,
+             started_at = CASE WHEN $1::text = 'in_progress' THEN NOW() ELSE started_at END,
+             completed_at = CASE WHEN $1::text = 'completed' THEN NOW() ELSE completed_at END,
+             cancelled_at = CASE WHEN $1::text = 'cancelled' THEN NOW() ELSE cancelled_at END,
+             cancellation_reason = CASE WHEN $1::text = 'cancelled' THEN $3::text ELSE cancellation_reason END
+         WHERE id = $2::uuid
          RETURNING *`,
         [status, rideId, notes || null]
       );
