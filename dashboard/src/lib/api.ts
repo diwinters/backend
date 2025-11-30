@@ -144,6 +144,21 @@ class ApiClient {
   async getWebSocketDebug() {
     return this.request<{ websocket: any }>('/debug/websocket');
   }
+
+  // Driver Approval
+  async approveDriver(did: string, driverRole: 'taxi' | 'delivery') {
+    return this.request<{ user: any; profile: any }>('/drivers/approve', {
+      method: 'POST',
+      body: JSON.stringify({ did, driverRole }),
+    });
+  }
+
+  async revokeDriver(did: string) {
+    return this.request<{ user: any }>('/drivers/revoke', {
+      method: 'POST',
+      body: JSON.stringify({ did }),
+    });
+  }
 }
 
 export const api = new ApiClient();

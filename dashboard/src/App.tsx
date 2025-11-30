@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard';
 import Rides from './pages/Rides';
 import RideDetail from './pages/RideDetail';
 import Drivers from './pages/Drivers';
+import DriversApproval from './pages/DriversApproval';
 import Users from './pages/Users';
 import Debug from './pages/Debug';
 
@@ -43,6 +44,7 @@ function AppRoutes() {
                 <Route path="/rides" element={<Rides />} />
                 <Route path="/rides/:id" element={<RideDetail />} />
                 <Route path="/drivers" element={<Drivers />} />
+                <Route path="/drivers/approval" element={<DriversApproval />} />
                 <Route path="/users" element={<Users />} />
                 <Route path="/debug" element={<Debug />} />
               </Routes>
