@@ -8,7 +8,7 @@ const clients = new Map<string, Set<WebSocket>>();
 export function initializeWebSocketServer(server: any) {
   const wss = new WebSocket.Server({ server, path: '/ws' });
 
-  wss.on('connection', (ws: WebSocket, req) => {
+  wss.on('connection', (ws: WebSocket) => {
     console.log('New WebSocket connection');
 
     let userDid: string | null = null;
