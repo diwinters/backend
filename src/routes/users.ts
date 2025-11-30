@@ -147,4 +147,45 @@ router.get('/:did', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * GET /api/users/:did/driver-status
+ * Check if user is an approved driver and their role
+ */
+router.get('/:did/driver-status', async (req: Request, res: Response) => {
+  try {
+    const { did } = req.params;
+
+    const result = await pool.query(
+      `SELECT approved_driver, driver_role, user_type
+       FROM users
+       WHERE did = $1`,
+      [did]
+    );
+
+    if (result.rows.length === 0) {
+      // User not in database yet - not a driver
+      return res.json({
+        success: true,
+        isDriver: false,
+        driverRole: null,
+      });
+    }
+
+    const user = result.rows[0];
+    
+    res.json({
+      success: true,
+      isDriver: user.approved_driver === true,
+      driverRole: user.driver_role, // 'taxi' or 'delivery'
+      userType: user.user_type, // 'driver', 'livreur', or 'both'
+    });
+  } catch (error) {
+    console.error('Error checking driver status:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to check driver status',
+    } as ErrorResponse);
+  }
+});
+
 export default router;

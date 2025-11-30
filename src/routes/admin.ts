@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { pool } from '../config/database';
 import { getWebSocketStats } from '../services/websocket.service';
+import { getUserProfileByDID, isValidDID } from '../services/plc-directory.service';
 
 const router = Router();
 
@@ -772,6 +773,124 @@ router.get('/debug/health', authenticateAdmin, async (_req: AuthRequest, res: Re
         error: 'Health check failed',
       },
     });
+  }
+});
+
+/**
+ * POST /api/admin/drivers/approve
+ * Approve a user as driver or livreur
+ */
+router.post('/drivers/approve', authenticateAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const { did, driverRole } = req.body;
+
+    // Validate input
+    if (!did || !driverRole) {
+      return res.status(400).json({ error: 'DID and driverRole required' });
+    }
+
+    if (!isValidDID(did)) {
+      return res.status(400).json({ error: 'Invalid DID format' });
+    }
+
+    if (!['taxi', 'delivery'].includes(driverRole)) {
+      return res.status(400).json({ error: 'driverRole must be taxi or delivery' });
+    }
+
+    // Fetch user profile from PLC Directory
+    const profile = await getUserProfileByDID(did);
+    if (!profile) {
+      return res.status(404).json({ error: 'User not found in PLC Directory' });
+    }
+
+    // Determine user_type
+    const userType = driverRole === 'delivery' ? 'livreur' : 'driver';
+
+    // Create or update user with driver approval
+    const result = await pool.query(
+      `INSERT INTO users (did, display_name, user_type, driver_role, approved_driver, approved_by, approved_at, is_active)
+       VALUES ($1, $2, $3, $4, true, $5, NOW(), true)
+       ON CONFLICT (did) DO UPDATE SET
+         user_type = EXCLUDED.user_type,
+         driver_role = EXCLUDED.driver_role,
+         approved_driver = true,
+         approved_by = EXCLUDED.approved_by,
+         approved_at = NOW(),
+         display_name = COALESCE(EXCLUDED.display_name, users.display_name),
+         updated_at = NOW()
+       RETURNING id, did, display_name, user_type, driver_role, approved_driver`,
+      [did, profile.handle || null, userType, driverRole, req.admin?.id]
+    );
+
+    // Log activity
+    await pool.query(
+      `INSERT INTO admin_activity_log (admin_id, action, entity_type, entity_id, details, ip_address)
+       VALUES ($1, 'approve_driver', 'user', $2, $3, $4)`,
+      [
+        req.admin?.id,
+        result.rows[0].id,
+        JSON.stringify({ driverRole, handle: profile.handle }),
+        req.ip,
+      ]
+    );
+
+    res.json({
+      success: true,
+      user: result.rows[0],
+      profile,
+    });
+  } catch (error) {
+    console.error('Approve driver error:', error);
+    res.status(500).json({ error: 'Failed to approve driver' });
+  }
+});
+
+/**
+ * POST /api/admin/drivers/revoke
+ * Revoke driver approval
+ */
+router.post('/drivers/revoke', authenticateAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const { did } = req.body;
+
+    if (!did) {
+      return res.status(400).json({ error: 'DID required' });
+    }
+
+    const result = await pool.query(
+      `UPDATE users 
+       SET approved_driver = false, 
+           driver_role = NULL,
+           updated_at = NOW()
+       WHERE did = $1
+       RETURNING id, did, display_name, user_type, approved_driver`,
+      [did]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Also set driver as unavailable
+    await pool.query(
+      `UPDATE driver_locations SET is_available = false WHERE driver_did = $1`,
+      [did]
+    );
+
+    // Log activity
+    await pool.query(
+      `INSERT INTO admin_activity_log (admin_id, action, entity_type, entity_id, details, ip_address)
+       VALUES ($1, 'revoke_driver', 'user', $2, $3, $4)`,
+      [req.admin?.id, result.rows[0].id, JSON.stringify({ did }), req.ip]
+    );
+
+    res.json({
+      success: true,
+      user: result.rows[0],
+    });
+  } catch (error) {
+    console.error('Revoke driver error:', error);
+    res.status(500).json({ error: 'Failed to revoke driver approval' });
   }
 });
 
