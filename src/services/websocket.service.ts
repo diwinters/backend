@@ -13,8 +13,6 @@ interface ExtendedWebSocket extends WebSocket {
 
 // Heartbeat interval (30 seconds)
 const HEARTBEAT_INTERVAL = 30000;
-// Connection timeout if no pong received (10 seconds after ping)
-const PONG_TIMEOUT = 10000;
 
 export function initializeWebSocketServer(server: any) {
   const wss = new WebSocket.Server({ server, path: '/ws' });
