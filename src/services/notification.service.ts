@@ -47,16 +47,37 @@ export class NotificationService {
     payload: NotificationPayload
   ): Promise<boolean> {
     try {
-      // Filter out invalid tokens
-      const validTokens = tokens.filter(token => Expo.isExpoPushToken(token));
+      console.log(`[NotificationService] Attempting to send to ${tokens.length} tokens`);
+      
+      // Filter out invalid tokens and log them
+      const validTokens: string[] = [];
+      const invalidTokens: string[] = [];
+      
+      for (const token of tokens) {
+        if (Expo.isExpoPushToken(token)) {
+          validTokens.push(token);
+        } else {
+          invalidTokens.push(token);
+        }
+      }
+      
+      if (invalidTokens.length > 0) {
+        console.warn(`[NotificationService] ${invalidTokens.length} invalid tokens found:`, 
+          invalidTokens.map(t => t.substring(0, 30) + '...'));
+      }
 
       if (validTokens.length === 0) {
-        console.warn('No valid Expo push tokens provided');
+        console.warn('[NotificationService] No valid Expo push tokens provided');
         return false;
       }
+      
+      console.log(`[NotificationService] Sending to ${validTokens.length} valid Expo tokens`);
 
       // Build notification message based on payload type
       const { title, body, data } = this.buildNotificationMessage(payload);
+      
+      // Get the appropriate Android notification channel based on payload reason
+      const channelId = this.getChannelIdForReason(payload.reason);
 
       // Create messages for each token
       const messages: ExpoPushMessage[] = validTokens.map(token => ({
@@ -66,8 +87,10 @@ export class NotificationService {
         body,
         data,
         priority: 'high',
-        channelId: 'default', // Android notification channel
+        channelId, // Use the appropriate channel for the notification type
       }));
+      
+      console.log(`[NotificationService] Sending notification: "${title}" via channel "${channelId}"`);
 
       // Send notifications in chunks
       const chunks = this.expo.chunkPushNotifications(messages);
@@ -76,6 +99,7 @@ export class NotificationService {
       for (const chunk of chunks) {
         try {
           const ticketChunk = await this.expo.sendPushNotificationsAsync(chunk);
+          console.log(`[NotificationService] Sent chunk, tickets:`, ticketChunk.map((t: ExpoPushTicket) => t.status));
           tickets.push(...ticketChunk);
         } catch (error) {
           console.error('Error sending notification chunk:', error);
@@ -87,6 +111,8 @@ export class NotificationService {
       if (errors.length > 0) {
         console.error('Push notification errors:', errors);
       }
+      
+      console.log(`[NotificationService] Push result: ${tickets.length - errors.length}/${tickets.length} successful`);
 
       return errors.length < tickets.length; // Success if at least one notification sent
     } catch (error) {
@@ -167,6 +193,22 @@ export class NotificationService {
         return 'Your ride has been cancelled';
       default:
         return `Ride status: ${status}`;
+    }
+  }
+
+  /**
+   * Get Android notification channel ID based on notification reason
+   */
+  private getChannelIdForReason(reason: string): string {
+    switch (reason) {
+      case 'ride-offer':
+        return 'ride-offer';
+      case 'ride-assigned':
+        return 'ride-assigned';
+      case 'ride-status-update':
+        return 'ride-status-update';
+      default:
+        return 'default';
     }
   }
 
