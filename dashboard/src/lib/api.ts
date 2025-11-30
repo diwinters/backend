@@ -140,6 +140,10 @@ class ApiClient {
   async getNotificationDebug() {
     return this.request<{ devices: any[] }>('/debug/notifications');
   }
+
+  async getWebSocketDebug() {
+    return this.request<{ websocket: any }>('/debug/websocket');
+  }
 }
 
 export const api = new ApiClient();

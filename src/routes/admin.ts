@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { pool } from '../config/database';
+import { getWebSocketStats } from '../services/websocket.service';
 
 const router = Router();
 
@@ -372,8 +373,8 @@ router.get('/rides', authenticateAdmin, async (req: AuthRequest, res: Response) 
     params.push(limit, offset);
     const result = await pool.query(
       `SELECT r.*, 
-              u1.name as rider_name,
-              u2.name as driver_name
+              u1.display_name as rider_name,
+              u2.display_name as driver_name
        FROM rides r
        LEFT JOIN users u1 ON r.rider_did = u1.did
        LEFT JOIN users u2 ON r.driver_did = u2.did
@@ -410,8 +411,8 @@ router.get('/rides/:id', authenticateAdmin, async (req: AuthRequest, res: Respon
     const [ride, history] = await Promise.all([
       pool.query(
         `SELECT r.*, 
-                u1.name as rider_name, u1.phone as rider_phone,
-                u2.name as driver_name, u2.phone as driver_phone
+                u1.display_name as rider_name, u1.phone as rider_phone,
+                u2.display_name as driver_name, u2.phone as driver_phone
          FROM rides r
          LEFT JOIN users u1 ON r.rider_did = u1.did
          LEFT JOIN users u2 ON r.driver_did = u2.did
@@ -451,7 +452,7 @@ router.get('/drivers', authenticateAdmin, async (req: AuthRequest, res: Response
     const online = req.query.online as string;
 
     let query = `
-      SELECT u.did, u.name, u.phone, u.avatar, u.user_type, u.created_at,
+      SELECT u.did, u.display_name as name, u.phone, u.avatar_url as avatar, u.user_type, u.created_at,
              dl.latitude, dl.longitude, dl.is_available, dl.updated_at as last_location_update,
              (SELECT COUNT(*) FROM rides WHERE driver_did = u.did AND status = 'completed') as completed_rides,
              (SELECT COUNT(*) FROM rides WHERE driver_did = u.did AND status IN ('accepted', 'driver_arrived', 'in_progress')) as active_ride
@@ -505,7 +506,7 @@ router.get('/drivers/locations', authenticateAdmin, async (_req: AuthRequest, re
   try {
     const result = await pool.query(`
       SELECT dl.driver_did, dl.latitude, dl.longitude, dl.heading, dl.speed, dl.updated_at,
-             u.name, u.avatar
+             u.display_name as name, u.avatar_url as avatar
       FROM driver_locations dl
       JOIN users u ON dl.driver_did = u.did
       WHERE dl.is_available = true
@@ -538,7 +539,7 @@ router.get('/users', authenticateAdmin, async (req: AuthRequest, res: Response) 
 
     if (search) {
       params.push(`%${search}%`);
-      whereClause += ` AND (u.name ILIKE $${params.length} OR u.did ILIKE $${params.length} OR u.phone ILIKE $${params.length})`;
+      whereClause += ` AND (u.display_name ILIKE $${params.length} OR u.did ILIKE $${params.length} OR u.phone ILIKE $${params.length})`;
     }
 
     const countResult = await pool.query(
@@ -548,7 +549,7 @@ router.get('/users', authenticateAdmin, async (req: AuthRequest, res: Response) 
 
     params.push(limit, offset);
     const result = await pool.query(
-      `SELECT u.*, 
+      `SELECT u.did, u.display_name as name, u.phone, u.avatar_url as avatar, u.user_type, u.created_at,
               (SELECT COUNT(*) FROM rides WHERE rider_did = u.did) as total_rides,
               (SELECT COUNT(*) FROM rides WHERE rider_did = u.did AND status = 'completed') as completed_rides
        FROM users u
@@ -671,11 +672,16 @@ router.post('/rides/:id/cancel', authenticateAdmin, async (req: AuthRequest, res
  * Get WebSocket connection status
  */
 router.get('/debug/websocket', authenticateAdmin, async (_req: AuthRequest, res: Response) => {
-  // This will be populated by the WebSocket service
-  res.json({
-    success: true,
-    message: 'WebSocket debug info - implement in websocket service',
-  });
+  try {
+    const stats = getWebSocketStats();
+    res.json({
+      success: true,
+      websocket: stats,
+    });
+  } catch (error) {
+    console.error('WebSocket stats error:', error);
+    res.status(500).json({ error: 'Failed to get WebSocket stats' });
+  }
 });
 
 /**
@@ -686,7 +692,7 @@ router.get('/debug/notifications', authenticateAdmin, async (_req: AuthRequest, 
   try {
     const result = await pool.query(`
       SELECT ud.device_token, ud.platform, ud.is_active, ud.last_seen,
-             u.did, u.name
+             u.did, u.display_name as name
       FROM user_devices ud
       JOIN users u ON ud.user_id = u.id
       ORDER BY ud.last_seen DESC

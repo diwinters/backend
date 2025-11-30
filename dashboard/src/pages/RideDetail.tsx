@@ -17,7 +17,7 @@ import {
 import { format } from 'date-fns';
 
 interface RideDetail {
-  id: number;
+  id: string;
   rider_did: string;
   driver_did: string | null;
   rider_name: string;
@@ -26,15 +26,13 @@ interface RideDetail {
   driver_phone: string | null;
   status: string;
   pickup_address: string;
-  pickup_latitude: number;
-  pickup_longitude: number;
+  pickup_lat: number;
+  pickup_lng: number;
   dropoff_address: string;
-  dropoff_latitude: number;
-  dropoff_longitude: number;
+  dropoff_lat: number;
+  dropoff_lng: number;
   estimated_price: number;
   final_price: number | null;
-  estimated_duration: number;
-  estimated_distance: number;
   created_at: string;
   accepted_at: string | null;
   started_at: string | null;
@@ -211,7 +209,7 @@ export default function RideDetail() {
                   <p className="text-sm text-gray-500">Pickup</p>
                   <p className="text-gray-900">{ride.pickup_address}</p>
                   <p className="text-xs text-gray-400 mt-1">
-                    {ride.pickup_latitude.toFixed(6)}, {ride.pickup_longitude.toFixed(6)}
+                    {ride.pickup_lat?.toFixed(6)}, {ride.pickup_lng?.toFixed(6)}
                   </p>
                 </div>
               </div>
@@ -224,7 +222,7 @@ export default function RideDetail() {
                   <p className="text-sm text-gray-500">Dropoff</p>
                   <p className="text-gray-900">{ride.dropoff_address}</p>
                   <p className="text-xs text-gray-400 mt-1">
-                    {ride.dropoff_latitude.toFixed(6)}, {ride.dropoff_longitude.toFixed(6)}
+                    {ride.dropoff_lat?.toFixed(6)}, {ride.dropoff_lng?.toFixed(6)}
                   </p>
                 </div>
               </div>
@@ -327,7 +325,7 @@ export default function RideDetail() {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-gray-500">Estimated</span>
-                <span className="font-medium">{ride.estimated_price.toFixed(2)} MAD</span>
+                <span className="font-medium">{ride.estimated_price?.toFixed(2) || '0.00'} MAD</span>
               </div>
               {ride.final_price && (
                 <div className="flex justify-between">
@@ -335,16 +333,6 @@ export default function RideDetail() {
                   <span className="font-semibold text-green-600">{ride.final_price.toFixed(2)} MAD</span>
                 </div>
               )}
-              <div className="pt-3 border-t border-gray-100 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Distance</span>
-                  <span>{(ride.estimated_distance / 1000).toFixed(1)} km</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Est. Duration</span>
-                  <span>{Math.round(ride.estimated_duration / 60)} min</span>
-                </div>
-              </div>
             </div>
           </div>
 

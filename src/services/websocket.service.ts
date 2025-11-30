@@ -205,3 +205,24 @@ export function broadcastToAll(message: WSMessage) {
 export function getConnectedClientsCount(): number {
   return clients.size;
 }
+
+/**
+ * Get WebSocket stats for admin dashboard
+ */
+export function getWebSocketStats() {
+  const stats = {
+    totalConnections: 0,
+    uniqueUsers: clients.size,
+    connections: [] as { did: string; connectionCount: number }[],
+  };
+
+  clients.forEach((userClients, did) => {
+    const activeCount = Array.from(userClients).filter(ws => ws.readyState === WebSocket.OPEN).length;
+    stats.totalConnections += activeCount;
+    if (activeCount > 0) {
+      stats.connections.push({ did, connectionCount: activeCount });
+    }
+  });
+
+  return stats;
+}

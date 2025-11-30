@@ -9,6 +9,7 @@ import {
   Clock,
   Bell,
   Smartphone,
+  Wifi,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -41,6 +42,12 @@ interface Device {
   name: string;
 }
 
+interface WebSocketStats {
+  totalConnections: number;
+  uniqueUsers: number;
+  connections: { did: string; connectionCount: number }[];
+}
+
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return bytes + ' B';
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
@@ -60,17 +67,20 @@ function formatUptime(seconds: number): string {
 export default function Debug() {
   const [health, setHealth] = useState<HealthData | null>(null);
   const [devices, setDevices] = useState<Device[]>([]);
+  const [wsStats, setWsStats] = useState<WebSocketStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const fetchData = async () => {
     try {
-      const [healthRes, devicesRes] = await Promise.all([
+      const [healthRes, devicesRes, wsRes] = await Promise.all([
         api.getHealth(),
         api.getNotificationDebug(),
+        api.getWebSocketDebug(),
       ]);
       setHealth(healthRes.health);
       setDevices(devicesRes.devices);
+      setWsStats(wsRes.websocket);
     } catch (error) {
       console.error('Failed to fetch debug info:', error);
     } finally {
@@ -81,6 +91,9 @@ export default function Debug() {
 
   useEffect(() => {
     fetchData();
+    // Auto refresh every 10 seconds
+    const interval = setInterval(fetchData, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleRefresh = () => {
@@ -219,6 +232,60 @@ export default function Debug() {
             <p className="text-sm text-gray-500">Active Devices</p>
           </div>
         </div>
+      </div>
+
+      {/* WebSocket Connections */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <Wifi className="w-5 h-5" />
+            WebSocket Connections
+          </h2>
+          <p className="text-sm text-gray-500">
+            {wsStats?.totalConnections || 0} active connections from {wsStats?.uniqueUsers || 0} unique users
+          </p>
+        </div>
+
+        {!wsStats || wsStats.connections.length === 0 ? (
+          <div className="p-12 text-center text-gray-500">
+            <Wifi className="w-12 h-12 mx-auto text-gray-300 mb-4" />
+            <p>No active WebSocket connections</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">User DID</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Connections</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {wsStats.connections.map((conn, index) => (
+                  <tr key={index} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3">
+                      <code className="text-xs text-gray-700 bg-gray-100 px-2 py-1 rounded">
+                        {conn.did}
+                      </code>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                        {conn.connectionCount} {conn.connectionCount === 1 ? 'connection' : 'connections'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="flex items-center gap-1 text-green-600 text-sm">
+                        <CheckCircle className="w-4 h-4" />
+                        Connected
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Registered Devices */}
