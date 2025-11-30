@@ -91,50 +91,50 @@ const CITY_PRICING: Record<string, CityPricing> = {
     nightEndHour: 6,     // 6 AM
     
     ride: {
-      baseFareDay: 5,        // Match local taxi day fare
-      baseFareNight: 6,      // Match local taxi night fare
+      baseFareDay: 4,        // Competitive day fare
+      baseFareNight: 5,      // Competitive night fare
       baseDistanceKm: 5,     // First 5km included in base
-      perKmAfterBase: 0.5,   // 0.5 DH per km after base (1 DH per 2km)
+      perKmAfterBase: 0.4,   // 0.4 DH per km after base
       perKmInterval: 2,      // Charge applies every 2km
-      minimumFare: 5,        // Minimum 5 DH
+      minimumFare: 4,        // Minimum 4 DH
       specialZones: [
         {
           name: 'Port de Dakhla',
           coordinates: { lat: 23.6847, lng: -15.9580 },
           radiusKm: 2,
-          fixedFare: 15,
+          fixedFare: 12,
         },
         {
           name: 'Université Ibn Zohr - Dakhla',
           coordinates: { lat: 23.7200, lng: -15.9400 },
           radiusKm: 1.5,
-          fixedFare: 15,
+          fixedFare: 12,
         },
         {
           name: 'Aéroport Dakhla',
           coordinates: { lat: 23.7183, lng: -15.9322 },
           radiusKm: 2,
-          fixedFare: 20,
+          fixedFare: 15,
         },
         {
           name: 'PK25 / Lassarga',
           coordinates: { lat: 23.5500, lng: -15.9000 },
           radiusKm: 3,
-          fixedFare: 20,
+          fixedFare: 15,
         },
       ],
     },
     
     delivery: {
-      baseFare: 8,           // Slightly higher for delivery
-      perKm: 1,              // 1 DH per km
+      baseFare: 6,           // Competitive delivery base
+      perKm: 0.8,            // 0.8 DH per km
       packageMultiplier: {
         small: 1,
-        medium: 1.2,
-        large: 1.5,
-        extra_large: 2,
+        medium: 1.15,
+        large: 1.3,
+        extra_large: 1.6,
       },
-      minimumFare: 8,
+      minimumFare: 6,
     },
     
     platformFeePercent: 15,  // 15% platform fee
