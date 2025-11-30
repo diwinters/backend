@@ -29,7 +29,9 @@ router.post('/available', async (req: Request, res: Response) => {
       } as ErrorResponse);
     }
 
-    if (!request.currentLocation.latitude || !request.currentLocation.longitude) {
+    // Check for undefined/null, not falsy (0 is a valid coordinate)
+    if (request.currentLocation.latitude === undefined || request.currentLocation.latitude === null ||
+        request.currentLocation.longitude === undefined || request.currentLocation.longitude === null) {
       return res.status(400).json({
         success: false,
         error: 'Current location must include latitude and longitude',
