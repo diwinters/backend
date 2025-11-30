@@ -1,12 +1,25 @@
 import { Expo, ExpoPushMessage, ExpoPushTicket } from 'expo-server-sdk';
 import * as admin from 'firebase-admin';
+import * as path from 'path';
+import * as fs from 'fs';
 import { pool } from '../config/database';
 import { NotificationPayload } from '../types';
 
-// Initialize Firebase Admin SDK if credentials are available
+// Initialize Firebase Admin SDK
 let firebaseInitialized = false;
 try {
-  if (process.env.FIREBASE_PROJECT_ID) {
+  // Try to load from service account JSON file first
+  const serviceAccountPath = path.join(__dirname, '../../firebase-service-account.json');
+  
+  if (fs.existsSync(serviceAccountPath)) {
+    const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+    firebaseInitialized = true;
+    console.log('[NotificationService] Firebase Admin SDK initialized from service account file');
+  } else if (process.env.FIREBASE_PROJECT_ID) {
+    // Fallback to environment variables
     admin.initializeApp({
       credential: admin.credential.cert({
         projectId: process.env.FIREBASE_PROJECT_ID,
@@ -15,9 +28,9 @@ try {
       }),
     });
     firebaseInitialized = true;
-    console.log('[NotificationService] Firebase Admin SDK initialized');
+    console.log('[NotificationService] Firebase Admin SDK initialized from env vars');
   } else {
-    console.log('[NotificationService] Firebase credentials not configured, using Expo fallback');
+    console.log('[NotificationService] Firebase credentials not found');
   }
 } catch (error) {
   console.warn('[NotificationService] Firebase init failed:', error);

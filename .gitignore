@@ -12,6 +12,10 @@ build/
 .env.local
 .env.*.local
 
+# Firebase credentials (sensitive!)
+firebase-service-account.json
+*-firebase-adminsdk-*.json
+
 # Logs
 logs/
 *.log
