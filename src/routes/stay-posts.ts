@@ -36,7 +36,7 @@ router.get('/approved', async (req: Request, res: Response) => {
                 sp.longitude,
                 sp.curated_categories,
                 sp.submitted_at,
-                sp.approved_at AS reviewed_at,
+                sp.reviewed_at,
                 s.name AS provider_name
             FROM stay_posts sp
             LEFT JOIN stays s ON sp.author_did = s.did
