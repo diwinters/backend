@@ -11,6 +11,8 @@ import {
   AlertCircle,
   CheckCircle,
   XCircle,
+  Edit2,
+  MapPin,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -19,6 +21,8 @@ interface Stay {
   did: string;
   name: string | null;
   description: string | null;
+  latitude: number | null;
+  longitude: number | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -30,13 +34,21 @@ export default function Stays() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   
-  // Add stay form
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newDid, setNewDid] = useState('');
-  const [newName, setNewName] = useState('');
-  const [newDescription, setNewDescription] = useState('');
-  const [isAdding, setIsAdding] = useState(false);
-  const [addError, setAddError] = useState<string | null>(null);
+  // Add/Edit stay form
+  const [showForm, setShowForm] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  
+  const [formData, setFormData] = useState({
+    did: '',
+    name: '',
+    description: '',
+    latitude: '',
+    longitude: '',
+  });
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const fetchStays = async () => {
     setIsLoading(true);
@@ -56,24 +68,62 @@ export default function Stays() {
     fetchStays();
   }, []);
 
-  const handleAddStay = async (e: React.FormEvent) => {
+  const resetForm = () => {
+    setFormData({
+      did: '',
+      name: '',
+      description: '',
+      latitude: '',
+      longitude: '',
+    });
+    setIsEditing(false);
+    setEditingId(null);
+    setFormError(null);
+    setShowForm(false);
+  };
+
+  const handleEditClick = (stay: Stay) => {
+    setFormData({
+      did: stay.did,
+      name: stay.name || '',
+      description: stay.description || '',
+      latitude: stay.latitude?.toString() || '',
+      longitude: stay.longitude?.toString() || '',
+    });
+    setIsEditing(true);
+    setEditingId(stay.id);
+    setShowForm(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newDid.trim()) return;
+    if (!formData.did.trim()) return;
     
-    setIsAdding(true);
-    setAddError(null);
+    setIsSubmitting(true);
+    setFormError(null);
+    
     try {
-      await api.addStay(newDid.trim(), newName.trim() || undefined, newDescription.trim() || undefined);
-      setNewDid('');
-      setNewName('');
-      setNewDescription('');
-      setShowAddForm(false);
+      const payload = {
+        did: formData.did.trim(),
+        name: formData.name.trim() || undefined,
+        description: formData.description.trim() || undefined,
+        latitude: formData.latitude ? parseFloat(formData.latitude) : undefined,
+        longitude: formData.longitude ? parseFloat(formData.longitude) : undefined,
+      };
+
+      if (isEditing && editingId) {
+        await api.updateStay(editingId, payload);
+      } else {
+        await api.addStay(payload.did, payload.name, payload.description, payload.latitude, payload.longitude);
+      }
+      
+      resetForm();
       fetchStays();
     } catch (err: any) {
-      console.error('Failed to add stay:', err);
-      setAddError(err.message || 'Failed to add stay provider');
+      console.error('Failed to save stay:', err);
+      setFormError(err.message || 'Failed to save stay provider');
     } finally {
-      setIsAdding(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -125,7 +175,10 @@ export default function Stays() {
             Refresh
           </button>
           <button
-            onClick={() => setShowAddForm(true)}
+            onClick={() => {
+              resetForm();
+              setShowForm(true);
+            }}
             className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
@@ -146,23 +199,26 @@ export default function Stays() {
         />
       </div>
 
-      {/* Add Stay Form Modal */}
-      {showAddForm && (
+      {/* Add/Edit Stay Form Modal */}
+      {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4 shadow-xl">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Add Stay Provider</h2>
-            <form onSubmit={handleAddStay} className="space-y-4">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4 shadow-xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              {isEditing ? 'Edit Stay Provider' : 'Add Stay Provider'}
+            </h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   DID <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
-                  value={newDid}
-                  onChange={(e) => setNewDid(e.target.value)}
+                  value={formData.did}
+                  onChange={(e) => setFormData({...formData, did: e.target.value})}
                   placeholder="did:plc:..."
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-100"
                   required
+                  disabled={isEditing}
                 />
               </div>
               <div>
@@ -171,52 +227,80 @@ export default function Stays() {
                 </label>
                 <input
                   type="text"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
                   placeholder="Hotel name or owner name"
                   className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  Leave empty to auto-fetch from profile
-                </p>
+                {!isEditing && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Leave empty to auto-fetch from profile
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Description
                 </label>
                 <textarea
-                  value={newDescription}
-                  onChange={(e) => setNewDescription(e.target.value)}
+                  value={formData.description}
+                  onChange={(e) => setFormData({...formData, description: e.target.value})}
                   placeholder="Optional notes about this stay provider"
                   rows={2}
                   className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
               </div>
               
-              {addError && (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Latitude
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={formData.latitude}
+                    onChange={(e) => setFormData({...formData, latitude: e.target.value})}
+                    placeholder="e.g. 23.7"
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Longitude
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={formData.longitude}
+                    onChange={(e) => setFormData({...formData, longitude: e.target.value})}
+                    placeholder="e.g. -15.9"
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  />
+                </div>
+              </div>
+              
+              {formError && (
                 <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-lg">
                   <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                  {addError}
+                  {formError}
                 </div>
               )}
               
               <div className="flex justify-end gap-3 pt-2">
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowAddForm(false);
-                    setAddError(null);
-                  }}
+                  onClick={resetForm}
                   className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={isAdding || !newDid.trim()}
+                  disabled={isSubmitting || !formData.did.trim()}
                   className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
                 >
-                  {isAdding ? 'Adding...' : 'Add Provider'}
+                  {isSubmitting ? 'Saving...' : (isEditing ? 'Update Provider' : 'Add Provider')}
                 </button>
               </div>
             </form>
@@ -307,6 +391,12 @@ export default function Stays() {
                       {stay.description && (
                         <p className="text-sm text-gray-500 truncate max-w-xs">{stay.description}</p>
                       )}
+                      {stay.latitude && stay.longitude && (
+                        <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
+                          <MapPin className="w-3 h-3" />
+                          {stay.latitude.toFixed(4)}, {stay.longitude.toFixed(4)}
+                        </div>
+                      )}
                     </div>
                   </td>
                   <td className="px-4 py-3">
@@ -331,6 +421,13 @@ export default function Stays() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => handleEditClick(stay)}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Edit"
+                      >
+                        <Edit2 className="w-5 h-5" />
+                      </button>
                       <button
                         onClick={() => handleToggleStay(stay.id)}
                         className={`p-2 rounded-lg transition-colors ${

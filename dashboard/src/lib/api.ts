@@ -182,14 +182,14 @@ class ApiClient {
     return this.request<{ stays: any[] }>('/admin', {}, '/api/stays');
   }
 
-  async addStay(did: string, name?: string, description?: string) {
+  async addStay(did: string, name?: string, description?: string, latitude?: number, longitude?: number) {
     return this.request<{ stay: any }>('/', {
       method: 'POST',
-      body: JSON.stringify({ did, name, description }),
+      body: JSON.stringify({ did, name, description, latitude, longitude }),
     }, '/api/stays');
   }
 
-  async updateStay(id: number, data: { name?: string; description?: string; is_active?: boolean }) {
+  async updateStay(id: number, data: { name?: string; description?: string; latitude?: number; longitude?: number; is_active?: boolean }) {
     return this.request<{ stay: any }>(`/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),

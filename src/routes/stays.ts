@@ -10,6 +10,8 @@ interface Stay {
   did: string;
   name: string | null;
   description: string | null;
+  latitude: number | null;
+  longitude: number | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -22,7 +24,7 @@ interface Stay {
 router.get('/', async (_req: Request, res: Response) => {
   try {
     const result = await pool.query(
-      `SELECT id, did, name, description, is_active, created_at, updated_at 
+      `SELECT id, did, name, description, latitude, longitude, is_active, created_at, updated_at 
        FROM stays 
        WHERE is_active = true 
        ORDER BY created_at DESC`
@@ -46,7 +48,7 @@ router.get('/', async (_req: Request, res: Response) => {
 router.get('/admin', authenticateAdmin, async (_req: Request, res: Response) => {
   try {
     const result = await pool.query(
-      `SELECT id, did, name, description, is_active, created_at, updated_at 
+      `SELECT id, did, name, description, latitude, longitude, is_active, created_at, updated_at 
        FROM stays 
        ORDER BY created_at DESC`
     );
@@ -65,7 +67,7 @@ router.get('/admin', authenticateAdmin, async (_req: Request, res: Response) => 
  */
 router.post('/', authenticateAdmin, async (req: Request, res: Response) => {
   try {
-    const { did, name, description } = req.body;
+    const { did, name, description, latitude, longitude } = req.body;
     
     if (!did) {
       return res.status(400).json({ error: 'DID is required' });
@@ -99,16 +101,16 @@ router.post('/', authenticateAdmin, async (req: Request, res: Response) => {
     
     // Insert the new stay
     const result = await pool.query(
-      `INSERT INTO stays (did, name, description) 
-       VALUES ($1, $2, $3) 
-       RETURNING id, did, name, description, is_active, created_at, updated_at`,
-      [did, stayName, description || null]
+      `INSERT INTO stays (did, name, description, latitude, longitude, is_active) 
+       VALUES ($1, $2, $3, $4, $5, true) 
+       RETURNING *`,
+      [did, stayName, description || null, latitude || null, longitude || null]
     );
     
-    res.status(201).json({ stay: result.rows[0] });
+    res.status(201).json(result.rows[0]);
   } catch (error) {
-    console.error('Error adding stay:', error);
-    res.status(500).json({ error: 'Failed to add stay provider' });
+    console.error('Error creating stay:', error);
+    res.status(500).json({ error: 'Failed to create stay' });
   }
 });
 
@@ -120,28 +122,32 @@ router.post('/', authenticateAdmin, async (req: Request, res: Response) => {
 router.put('/:id', authenticateAdmin, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, description, is_active } = req.body;
+    const { name, description, latitude, longitude, is_active } = req.body;
     
     const result = await pool.query(
       `UPDATE stays 
        SET name = COALESCE($1, name), 
            description = COALESCE($2, description),
-           is_active = COALESCE($3, is_active)
-       WHERE id = $4
-       RETURNING id, did, name, description, is_active, created_at, updated_at`,
-      [name, description, is_active, id]
+           latitude = COALESCE($3, latitude),
+           longitude = COALESCE($4, longitude),
+           is_active = COALESCE($5, is_active),
+           updated_at = NOW()
+       WHERE id = $6
+       RETURNING *`,
+      [name, description, latitude, longitude, is_active, id]
     );
     
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Stay provider not found' });
+      return res.status(404).json({ error: 'Stay not found' });
     }
     
-    res.json({ stay: result.rows[0] });
+    res.json(result.rows[0]);
   } catch (error) {
     console.error('Error updating stay:', error);
-    res.status(500).json({ error: 'Failed to update stay provider' });
+    res.status(500).json({ error: 'Failed to update stay' });
   }
 });
+
 
 /**
  * DELETE /api/stays/:id
