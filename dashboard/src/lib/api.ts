@@ -176,6 +176,37 @@ class ApiClient {
       body: JSON.stringify({ config }),
     }, '/api/pricing');
   }
+
+  // Stays
+  async getStays() {
+    return this.request<{ stays: any[] }>('/admin', {}, '/api/stays');
+  }
+
+  async addStay(did: string, name?: string, description?: string) {
+    return this.request<{ stay: any }>('/', {
+      method: 'POST',
+      body: JSON.stringify({ did, name, description }),
+    }, '/api/stays');
+  }
+
+  async updateStay(id: number, data: { name?: string; description?: string; is_active?: boolean }) {
+    return this.request<{ stay: any }>(`/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }, '/api/stays');
+  }
+
+  async deleteStay(id: number) {
+    return this.request<{ message: string }>(`/${id}`, {
+      method: 'DELETE',
+    }, '/api/stays');
+  }
+
+  async toggleStay(id: number) {
+    return this.request<{ stay: any }>(`/${id}/toggle`, {
+      method: 'POST',
+    }, '/api/stays');
+  }
 }
 
 export const api = new ApiClient();

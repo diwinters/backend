@@ -14,6 +14,7 @@ import {
   UserPlus,
   DollarSign,
   Map,
+  Building2,
 } from 'lucide-react';
 
 interface NavItem {
@@ -29,6 +30,7 @@ const navItems: NavItem[] = [
   { name: 'Drivers', path: '/drivers', icon: <Car className="w-5 h-5" /> },
   { name: 'Driver Approval', path: '/drivers/approval', icon: <UserPlus className="w-5 h-5" /> },
   { name: 'Pricing', path: '/pricing', icon: <DollarSign className="w-5 h-5" /> },
+  { name: 'Stays', path: '/stays', icon: <Building2 className="w-5 h-5" /> },
   { name: 'Users', path: '/users', icon: <Users className="w-5 h-5" /> },
   { name: 'Debug', path: '/debug', icon: <Bug className="w-5 h-5" /> },
 ];
