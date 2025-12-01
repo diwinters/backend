@@ -12,6 +12,7 @@ import Debug from './pages/Debug';
 import Pricing from './pages/Pricing';
 import LiveMap from './pages/LiveMap';
 import Stays from './pages/Stays';
+import StayPostsApproval from './pages/StayPostsApproval';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { admin, isLoading } = useAuth();
@@ -50,6 +51,7 @@ function AppRoutes() {
                 <Route path="/drivers/approval" element={<DriversApproval />} />
                 <Route path="/pricing" element={<Pricing />} />
                 <Route path="/stays" element={<Stays />} />
+                <Route path="/stay-posts" element={<StayPostsApproval />} />
                 <Route path="/map" element={<LiveMap />} />
                 <Route path="/users" element={<Users />} />
                 <Route path="/debug" element={<Debug />} />

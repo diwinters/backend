@@ -41,6 +41,44 @@ router.get('/', async (_req: Request, res: Response) => {
 });
 
 /**
+ * GET /api/stays/check/:did
+ * Check if a user (by DID) is an approved stay provider
+ * Public endpoint for client-side authorization checks
+ */
+router.get('/check/:did', async (req: Request, res: Response) => {
+  try {
+    const { did } = req.params;
+
+    if (!did || !isValidDID(did)) {
+      return res.status(400).json({ error: 'Invalid or missing DID parameter' });
+    }
+
+    const result = await pool.query(
+      'SELECT is_active FROM stays WHERE did = $1',
+      [did]
+    );
+
+    if (result.rows.length === 0) {
+      // User is not a stay provider
+      return res.json({ 
+        isStayProvider: false,
+        isActive: false 
+      });
+    }
+
+    const isActive = result.rows[0].is_active;
+    
+    res.json({ 
+      isStayProvider: true,
+      isActive: isActive 
+    });
+  } catch (error) {
+    console.error('Error checking stay provider status:', error);
+    res.status(500).json({ error: 'Failed to check stay provider status' });
+  }
+});
+
+/**
  * GET /api/stays/admin
  * Get all stays for admin (includes inactive)
  * Requires admin authentication

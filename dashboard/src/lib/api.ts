@@ -207,6 +207,32 @@ class ApiClient {
       method: 'POST',
     }, '/api/stays');
   }
+
+  // Stay Posts
+  async getStayPosts(params: string = '') {
+    return this.request<{ posts: any[]; count: number }>(`/all${params}`, {}, '/api/stay-posts');
+  }
+
+  async approveStayPost(id: number, curatedCategories: string[] = []) {
+    return this.request<{ stayPost: any }>(`/approve/${id}`, {
+      method: 'POST',
+      body: JSON.stringify({ curatedCategories }),
+    }, '/api/stay-posts');
+  }
+
+  async rejectStayPost(id: number, reason: string) {
+    return this.request<{ stayPost: any }>(`/reject/${id}`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    }, '/api/stay-posts');
+  }
+
+  async updateStayPostCurated(id: number, curatedCategories: string[]) {
+    return this.request<{ stayPost: any }>(`/${id}/curated`, {
+      method: 'PUT',
+      body: JSON.stringify({ curatedCategories }),
+    }, '/api/stay-posts');
+  }
 }
 
 export const api = new ApiClient();
