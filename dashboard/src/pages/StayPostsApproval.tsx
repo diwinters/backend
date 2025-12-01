@@ -148,9 +148,9 @@ export default function StayPostsApproval() {
   })
 
   const stats = {
-    pending: posts.filter(p => p.approval_status === 'pending').length,
-    approved: posts.filter(p => p.approval_status === 'approved').length,
-    rejected: posts.filter(p => p.approval_status === 'rejected').length,
+    pending: posts.filter(p => p.approvalStatus === 'pending').length,
+    approved: posts.filter(p => p.approvalStatus === 'approved').length,
+    rejected: posts.filter(p => p.approvalStatus === 'rejected').length,
   }
 
   return (
