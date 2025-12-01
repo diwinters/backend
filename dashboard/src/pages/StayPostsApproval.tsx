@@ -17,10 +17,10 @@ import { api } from '../lib/api'
 
 interface StayPost {
   id: number
-  post_uri: string
-  post_cid: string
-  author_did: string
-  author_handle?: string
+  postUri: string
+  postCid: string
+  authorDid: string
+  authorHandle?: string
   categories: {
     propertyType?: string
     experience?: string
@@ -34,20 +34,20 @@ interface StayPost {
     }
   }
   amenities: string[]
-  property_type?: string
-  price_range?: string
-  guest_type?: string
-  price_per_night?: number
+  propertyType?: string
+  priceRange?: string
+  guestType?: string
+  pricePerNight?: number
   currency?: string
-  location_text?: string
+  locationText?: string
   latitude?: number
   longitude?: number
-  approval_status: 'pending' | 'approved' | 'rejected'
-  curated_categories: string[]
-  submitted_at: string
-  reviewed_at?: string
-  rejection_reason?: string
-  provider_name?: string
+  approvalStatus: 'pending' | 'approved' | 'rejected'
+  curatedCategories: string[]
+  submittedAt: string
+  reviewedAt?: string
+  rejectionReason?: string
+  providerName?: string
   provider_is_active?: boolean
 }
 
@@ -140,10 +140,10 @@ export default function StayPostsApproval() {
     if (!searchTerm) return true
     const search = searchTerm.toLowerCase()
     return (
-      post.author_handle?.toLowerCase().includes(search) ||
-      post.provider_name?.toLowerCase().includes(search) ||
-      post.location_text?.toLowerCase().includes(search) ||
-      post.property_type?.toLowerCase().includes(search)
+      post.authorHandle?.toLowerCase().includes(search) ||
+      post.providerName?.toLowerCase().includes(search) ||
+      post.locationText?.toLowerCase().includes(search) ||
+      post.propertyType?.toLowerCase().includes(search)
     )
   })
 
@@ -293,13 +293,13 @@ export default function StayPostsApproval() {
                           </button>
                           <div>
                             <p className="font-medium text-gray-900">
-                              {post.author_handle || post.author_did.slice(0, 20)}
+                              {post.authorHandle || post.authorDid.slice(0, 20)}
                             </p>
-                            <p className="text-sm text-gray-500">{post.provider_name}</p>
-                            {post.location_text && (
+                            <p className="text-sm text-gray-500">{post.providerName}</p>
+                            {post.locationText && (
                               <p className="text-xs text-gray-400 flex items-center gap-1 mt-1">
                                 <MapPin className="h-3 w-3" />
-                                {post.location_text}
+                                {post.locationText}
                               </p>
                             )}
                           </div>
@@ -308,10 +308,10 @@ export default function StayPostsApproval() {
 
                       <td className="px-4 py-4">
                         <div className="flex flex-wrap gap-1">
-                          {post.property_type && (
+                          {post.propertyType && (
                             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                               <Home className="h-3 w-3 mr-1" />
-                              {post.property_type}
+                              {post.propertyType}
                             </span>
                           )}
                           {post.categories.experience && (
@@ -319,25 +319,25 @@ export default function StayPostsApproval() {
                               {post.categories.experience}
                             </span>
                           )}
-                          {post.guest_type && (
+                          {post.guestType && (
                             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                               <Users className="h-3 w-3 mr-1" />
-                              {post.guest_type}
+                              {post.guestType}
                             </span>
                           )}
                         </div>
                       </td>
 
                       <td className="px-4 py-4">
-                        {post.price_per_night ? (
+                        {post.pricePerNight ? (
                           <div>
                             <p className="font-medium text-gray-900">
-                              {post.currency || 'EUR'} {post.price_per_night}
+                              {post.currency || 'EUR'} {post.pricePerNight}
                             </p>
                             <p className="text-xs text-gray-500">per night</p>
-                            {post.price_range && (
+                            {post.priceRange && (
                               <span className="inline-block mt-1 px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
-                                {post.price_range}
+                                {post.priceRange}
                               </span>
                             )}
                           </div>
@@ -348,25 +348,25 @@ export default function StayPostsApproval() {
 
                       <td className="px-4 py-4">
                         <p className="text-sm text-gray-900">
-                          {format(new Date(post.submitted_at), 'MMM d, yyyy')}
+                          {format(new Date(post.submittedAt), 'MMM d, yyyy')}
                         </p>
                         <p className="text-xs text-gray-500">
-                          {format(new Date(post.submitted_at), 'HH:mm')}
+                          {format(new Date(post.submittedAt), 'HH:mm')}
                         </p>
                       </td>
 
                       <td className="px-4 py-4">
-                        {post.approval_status === 'pending' && (
+                        {post.approvalStatus === 'pending' && (
                           <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
                             Pending
                           </span>
                         )}
-                        {post.approval_status === 'approved' && (
+                        {post.approvalStatus === 'approved' && (
                           <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
                             Approved
                           </span>
                         )}
-                        {post.approval_status === 'rejected' && (
+                        {post.approvalStatus === 'rejected' && (
                           <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
                             Rejected
                           </span>
@@ -374,7 +374,7 @@ export default function StayPostsApproval() {
                       </td>
 
                       <td className="px-4 py-4">
-                        {post.approval_status === 'pending' && (
+                        {post.approvalStatus === 'pending' && (
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleApprove(post.id)}
@@ -392,9 +392,9 @@ export default function StayPostsApproval() {
                             </button>
                           </div>
                         )}
-                        {post.approval_status === 'approved' && (
+                        {post.approvalStatus === 'approved' && (
                           <a
-                            href={`https://bsky.app/profile/${post.author_did}/post/${post.post_uri.split('/').pop()}`}
+                            href={`https://bsky.app/profile/${post.authorDid}/post/${post.postUri.split('/').pop()}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-blue-600 hover:text-blue-800 text-sm font-medium"
@@ -456,7 +456,7 @@ export default function StayPostsApproval() {
                             )}
 
                             {/* Curated Categories Selection (for pending posts) */}
-                            {post.approval_status === 'pending' && (
+                            {post.approvalStatus === 'pending' && (
                               <div>
                                 <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                                   <Tag className="h-4 w-4" />
@@ -482,11 +482,11 @@ export default function StayPostsApproval() {
                             )}
 
                             {/* Curated Categories Display (for approved posts) */}
-                            {post.approval_status === 'approved' && post.curated_categories.length > 0 && (
+                            {post.approvalStatus === 'approved' && post.curatedCategories && post.curatedCategories.length > 0 && (
                               <div>
                                 <h4 className="text-sm font-medium text-gray-700 mb-2">Curated Categories</h4>
                                 <div className="flex flex-wrap gap-2">
-                                  {post.curated_categories.map((catId) => {
+                                  {post.curatedCategories.map((catId) => {
                                     const cat = CURATED_CATEGORIES.find(c => c.id === catId)
                                     return cat ? (
                                       <span
@@ -506,15 +506,15 @@ export default function StayPostsApproval() {
                             <div>
                               <h4 className="text-sm font-medium text-gray-700 mb-1">Post URI</h4>
                               <code className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded">
-                                {post.post_uri}
+                                {post.postUri}
                               </code>
                             </div>
 
                             {/* Rejection Reason (for rejected posts) */}
-                            {post.approval_status === 'rejected' && post.rejection_reason && (
+                            {post.approvalStatus === 'rejected' && post.rejectionReason && (
                               <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                                 <h4 className="text-sm font-medium text-red-800 mb-1">Rejection Reason</h4>
-                                <p className="text-sm text-red-700">{post.rejection_reason}</p>
+                                <p className="text-sm text-red-700">{post.rejectionReason}</p>
                               </div>
                             )}
 
@@ -562,3 +562,4 @@ export default function StayPostsApproval() {
     </div>
   )
 }
+
