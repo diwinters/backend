@@ -6,11 +6,9 @@ import {
   X, 
   ChevronDown, 
   ChevronUp,
-  Filter,
   Search,
   Tag,
   MapPin,
-  DollarSign,
   Users,
   Home,
   Sparkles
