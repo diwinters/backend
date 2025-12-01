@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express'
-import pool from '../config/database'
+import { pool } from '../config/database'
 import { authenticateAdmin } from './admin'
 
 const router = Router()
@@ -102,7 +102,7 @@ router.get('/approved', async (req: Request, res: Response) => {
  * Get all active curated categories (Kitesurfer Package, Family Vacation, etc.)
  * Used by frontend to display smart filter combinations
  */
-router.get('/curated-categories', async (req: Request, res: Response) => {
+router.get('/curated-categories', async (_req: Request, res: Response) => {
     try {
         const result = await pool.query(
             `SELECT 
@@ -135,7 +135,7 @@ router.get('/curated-categories', async (req: Request, res: Response) => {
  * GET /api/stay-posts/pending
  * Get all pending stay posts for admin review
  */
-router.get('/pending', authenticateAdmin, async (req: Request, res: Response) => {
+router.get('/pending', authenticateAdmin, async (_req: Request, res: Response) => {
     try {
         const result = await pool.query(
             `SELECT 
@@ -513,7 +513,6 @@ router.get('/:id', authenticateAdmin, async (req: Request, res: Response) => {
 router.delete('/:id', authenticateAdmin, async (req: Request, res: Response) => {
     try {
         const { id } = req.params
-        const adminId = (req as any).admin.id
 
         const result = await pool.query('DELETE FROM stay_posts WHERE id = $1 RETURNING id', [id])
 
