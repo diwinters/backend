@@ -20,24 +20,24 @@ router.get('/approved', async (req: Request, res: Response) => {
         let query = `
             SELECT 
                 sp.id,
-                sp.post_uri,
-                sp.post_cid,
-                sp.author_did,
-                sp.author_handle,
+                sp.post_uri AS "postUri",
+                sp.post_cid AS "postCid",
+                sp.author_did AS "authorDid",
+                sp.author_handle AS "authorHandle",
                 sp.categories,
                 sp.amenities,
-                sp.property_type,
-                sp.price_range,
-                sp.guest_type,
-                sp.price_per_night,
+                sp.property_type AS "propertyType",
+                sp.price_range AS "priceRange",
+                sp.guest_type AS "guestType",
+                sp.price_per_night AS "pricePerNight",
                 sp.currency,
-                sp.location_text,
+                sp.location_text AS "locationText",
                 sp.latitude,
                 sp.longitude,
-                sp.curated_categories,
-                sp.submitted_at,
-                sp.reviewed_at,
-                s.name AS provider_name
+                sp.curated_categories AS "curatedCategories",
+                sp.submitted_at AS "submittedAt",
+                sp.reviewed_at AS "reviewedAt",
+                s.name AS "providerName"
             FROM stay_posts sp
             LEFT JOIN stays s ON sp.author_did = s.did
             WHERE sp.approval_status = 'approved'
@@ -140,23 +140,23 @@ router.get('/pending', authenticateAdmin, async (_req: Request, res: Response) =
         const result = await pool.query(
             `SELECT 
                 sp.id,
-                sp.post_uri,
-                sp.post_cid,
-                sp.author_did,
-                sp.author_handle,
+                sp.post_uri AS "postUri",
+                sp.post_cid AS "postCid",
+                sp.author_did AS "authorDid",
+                sp.author_handle AS "authorHandle",
                 sp.categories,
                 sp.amenities,
-                sp.property_type,
-                sp.price_range,
-                sp.guest_type,
-                sp.price_per_night,
+                sp.property_type AS "propertyType",
+                sp.price_range AS "priceRange",
+                sp.guest_type AS "guestType",
+                sp.price_per_night AS "pricePerNight",
                 sp.currency,
-                sp.location_text,
+                sp.location_text AS "locationText",
                 sp.latitude,
                 sp.longitude,
-                sp.submitted_at,
-                s.name AS provider_name,
-                s.is_active AS provider_is_active
+                sp.submitted_at AS "submittedAt",
+                s.name AS "providerName",
+                s.is_active AS "providerIsActive"
             FROM stay_posts sp
             LEFT JOIN stays s ON sp.author_did = s.did
             WHERE sp.approval_status = 'pending'
@@ -185,21 +185,21 @@ router.get('/all', authenticateAdmin, async (req: Request, res: Response) => {
         let query = `
             SELECT 
                 sp.id,
-                sp.post_uri,
-                sp.post_cid,
-                sp.author_did,
-                sp.author_handle,
+                sp.post_uri AS "postUri",
+                sp.post_cid AS "postCid",
+                sp.author_did AS "authorDid",
+                sp.author_handle AS "authorHandle",
                 sp.categories,
                 sp.amenities,
-                sp.property_type,
-                sp.price_range,
-                sp.approval_status,
-                sp.submitted_at,
-                sp.reviewed_at,
-                sp.rejection_reason,
-                sp.curated_categories,
-                s.name AS provider_name,
-                au.name AS reviewed_by_name
+                sp.property_type AS "propertyType",
+                sp.price_range AS "priceRange",
+                sp.approval_status AS "approvalStatus",
+                sp.submitted_at AS "submittedAt",
+                sp.reviewed_at AS "reviewedAt",
+                sp.rejection_reason AS "rejectionReason",
+                sp.curated_categories AS "curatedCategories",
+                s.name AS "providerName",
+                au.name AS "reviewedByName"
             FROM stay_posts sp
             LEFT JOIN stays s ON sp.author_did = s.did
             LEFT JOIN admin_users au ON sp.reviewed_by = au.id
