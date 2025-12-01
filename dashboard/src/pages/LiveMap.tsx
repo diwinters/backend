@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { api } from '../lib/api';
 import { RefreshCw, Navigation, User } from 'lucide-react';
 
 interface DriverLocation {
@@ -17,7 +17,6 @@ interface DriverLocation {
 }
 
 export default function LiveMap() {
-  const { token } = useAuth();
   const [drivers, setDrivers] = useState<DriverLocation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
@@ -25,14 +24,9 @@ export default function LiveMap() {
 
   const fetchDrivers = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/admin/drivers/locations', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await response.json();
-      if (data.success) {
-        setDrivers(data.drivers);
-        setLastUpdated(new Date());
-      }
+      const data = await api.getDriverLocations();
+      setDrivers(data.drivers);
+      setLastUpdated(new Date());
     } catch (err) {
       console.error('Failed to fetch driver locations', err);
     } finally {

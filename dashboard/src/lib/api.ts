@@ -22,7 +22,8 @@ class ApiClient {
 
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    baseUrl: string = API_BASE
   ): Promise<T> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -33,7 +34,7 @@ class ApiClient {
       headers['Authorization'] = `Bearer ${this.token}`;
     }
 
-    const response = await fetch(`${API_BASE}${endpoint}`, {
+    const response = await fetch(`${baseUrl}${endpoint}`, {
       ...options,
       headers,
     });
@@ -158,6 +159,22 @@ class ApiClient {
       method: 'POST',
       body: JSON.stringify({ did }),
     });
+  }
+
+  // Pricing
+  async getPricingConfigs() {
+    return this.request<{ configs: any[] }>('/', {}, '/api/pricing');
+  }
+
+  async getPricingConfig(citySlug: string) {
+    return this.request<{ config: any }>(`/${citySlug}`, {}, '/api/pricing');
+  }
+
+  async updatePricingConfig(citySlug: string, config: any) {
+    return this.request<{ config: any }>(`/${citySlug}`, {
+      method: 'PUT',
+      body: JSON.stringify({ config }),
+    }, '/api/pricing');
   }
 }
 

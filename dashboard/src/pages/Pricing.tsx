@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { api } from '../lib/api';
 import { Save, RefreshCw, AlertCircle, CheckCircle } from 'lucide-react';
 
 interface PricingConfig {
@@ -14,7 +14,6 @@ interface PricingConfig {
 }
 
 export default function Pricing() {
-  const { token } = useAuth();
   const [configs, setConfigs] = useState<PricingConfig[]>([]);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [editConfig, setEditConfig] = useState<string>('');
@@ -39,17 +38,10 @@ export default function Pricing() {
   const fetchConfigs = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/api/pricing', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await response.json();
-      if (data.success) {
-        setConfigs(data.configs);
-        if (!selectedCity && data.configs.length > 0) {
-          setSelectedCity(data.configs[0].city_slug);
-        }
-      } else {
-        setError(data.error);
+      const data = await api.getPricingConfigs();
+      setConfigs(data.configs);
+      if (!selectedCity && data.configs.length > 0) {
+        setSelectedCity(data.configs[0].city_slug);
       }
     } catch (err) {
       setError('Failed to fetch pricing configurations');
@@ -74,27 +66,13 @@ export default function Pricing() {
         throw new Error('Invalid JSON format');
       }
 
-      const response = await fetch(`http://localhost:3000/api/pricing/${selectedCity}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          config: parsedConfig,
-        }),
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        setSuccess('Configuration saved successfully');
-        // Update local state
-        setConfigs(configs.map(c => 
-          c.city_slug === selectedCity ? { ...c, config: parsedConfig } : c
-        ));
-      } else {
-        setError(data.error);
-      }
+      await api.updatePricingConfig(selectedCity, parsedConfig);
+      
+      setSuccess('Configuration saved successfully');
+      // Update local state
+      setConfigs(configs.map(c => 
+        c.city_slug === selectedCity ? { ...c, config: parsedConfig } : c
+      ));
     } catch (err: any) {
       setError(err.message || 'Failed to save configuration');
     } finally {
