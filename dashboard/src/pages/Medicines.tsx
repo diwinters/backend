@@ -15,7 +15,6 @@ import {
   ChevronDown,
   FileText,
 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
 
 interface Medicine {
   id: number;
