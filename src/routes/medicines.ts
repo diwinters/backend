@@ -4,29 +4,6 @@ import { authenticateAdmin } from './admin';
 
 const router = Router();
 
-interface Medicine {
-  id: number;
-  name: string;
-  price: number;
-  quantity: string | null;
-  category: string | null;
-  description: string | null;
-  requires_prescription: boolean;
-  is_active: boolean;
-  popularity: number;
-  created_at: string;
-  updated_at: string;
-}
-
-interface MedicineCategory {
-  id: number;
-  slug: string;
-  name: string;
-  icon: string | null;
-  sort_order: number;
-  is_active: boolean;
-}
-
 /**
  * GET /api/medicines
  * Get all active medicines (public endpoint for client)
