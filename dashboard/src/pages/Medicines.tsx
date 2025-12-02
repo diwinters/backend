@@ -363,7 +363,7 @@ export default function Medicines() {
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <span className="font-medium text-gray-900">{med.price.toFixed(2)} DH</span>
+                    <span className="font-medium text-gray-900">{Number(med.price).toFixed(2)} DH</span>
                   </td>
                   <td className="px-4 py-3">
                     <span className="text-sm text-gray-600">{getCategoryName(med.category)}</span>
