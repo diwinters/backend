@@ -8,7 +8,6 @@ import {
   Building2,
   Pill,
   Layers,
-  Globe,
   Users,
   DollarSign,
   Activity,
@@ -18,10 +17,8 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-  AlertCircle,
   MapPin,
   Zap,
-  Package,
 } from 'lucide-react';
 
 // =============================================================================

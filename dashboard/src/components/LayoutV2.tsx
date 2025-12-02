@@ -7,7 +7,6 @@ import {
   Car,
   LogOut,
   Globe,
-  Activity,
   ChevronDown,
   Users,
   Building2,
@@ -24,7 +23,6 @@ import {
   Settings,
   Menu,
   X,
-  ChevronRight,
   Zap,
 } from 'lucide-react';
 
