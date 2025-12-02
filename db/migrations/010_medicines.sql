@@ -1,6 +1,9 @@
 -- Medicines table - stores medicine inventory for pharmacy feature
 -- Admin can manage medicines (add, edit, delete, toggle active status)
 
+-- Enable pg_trgm extension for fuzzy text search (requires superuser or extension already installed)
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 CREATE TABLE IF NOT EXISTS medicines (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
