@@ -5,42 +5,6 @@ import { authenticateAdmin } from './admin';
 const router = Router();
 
 // =============================================================================
-// Types
-// =============================================================================
-
-interface City {
-  id: number;
-  slug: string;
-  name: string;
-  name_ar: string | null;
-  country_code: string;
-  timezone: string;
-  currency: string;
-  center_lat: number;
-  center_lng: number;
-  default_zoom: number;
-  boundary: object | null;
-  modules: {
-    rides: { enabled: boolean; settings: object };
-    stays: { enabled: boolean; settings: object };
-    shop: { enabled: boolean; settings: object };
-    pharmacy: { enabled: boolean; settings: object };
-    content: { enabled: boolean; settings: object };
-  };
-  settings: object;
-  cover_image_url: string | null;
-  icon_url: string | null;
-  primary_color: string;
-  is_active: boolean;
-  is_default: boolean;
-  is_coming_soon: boolean;
-  launch_date: string | null;
-  sort_order: number;
-  created_at: string;
-  updated_at: string;
-}
-
-// =============================================================================
 // Public Routes (for mobile app)
 // =============================================================================
 

@@ -13,7 +13,6 @@ import {
   MapPin,
   DollarSign,
   Clock,
-  TrendingUp,
   Activity,
   Zap,
 } from 'lucide-react';
@@ -22,20 +21,12 @@ import {
 // Types
 // =============================================================================
 
-interface ModuleStats {
-  rides: {
-    online_drivers: number;
-    active_rides: number;
-    completed_today: number;
-    revenue_today: number;
-  };
-  stays: {
-    active_providers: number;
-    pending_posts: number;
-  };
-  content: {
-    map_pills: number;
-  };
+interface CityModules {
+  rides?: { enabled: boolean; settings?: object };
+  stays?: { enabled: boolean; settings?: object };
+  shop?: { enabled: boolean; settings?: object };
+  pharmacy?: { enabled: boolean; settings?: object };
+  content?: { enabled: boolean; settings?: object };
 }
 
 interface QuickStat {
@@ -214,7 +205,7 @@ export default function DashboardHome() {
 
   // Get current city stats
   const cityStats = stats?.cities?.find((c: any) => c.id === currentCity?.id) || {};
-  const modules = currentCity?.modules || {};
+  const modules: CityModules = currentCity?.modules || {};
 
   const quickStats: QuickStat[] = [
     {
