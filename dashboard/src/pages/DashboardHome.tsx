@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useCity } from '../contexts/CityContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { api } from '../lib/api';
 
 // =============================================================================
@@ -38,8 +39,8 @@ function AnimatedNumber({ value, prefix = '', suffix = '', decimals = 0 }: { val
 function LivePulse() {
   return (
     <span className="relative flex h-2 w-2">
-      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
     </span>
   );
 }
@@ -99,13 +100,18 @@ function MetricCard({
   sparkData?: number[];
   suffix?: string;
 }) {
+  const { isDark } = useTheme();
   const isPositive = (change ?? 0) >= 0;
   
   return (
-    <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#1a1a2e] to-[#16162a] border border-white/5 p-5 hover:border-white/10 transition-all duration-300 hover:shadow-xl hover:shadow-black/20">
+    <div className={`group relative overflow-hidden rounded-2xl border p-5 transition-all duration-300 hover:shadow-xl ${
+      isDark 
+        ? 'bg-gradient-to-br from-[#1a1a2e] to-[#16162a] border-white/5 hover:border-white/10 hover:shadow-black/20' 
+        : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-gray-200/50'
+    }`}>
       {/* Glow effect */}
       <div 
-        className="absolute -top-20 -right-20 w-40 h-40 rounded-full blur-3xl opacity-20 group-hover:opacity-30 transition-opacity"
+        className={`absolute -top-20 -right-20 w-40 h-40 rounded-full blur-3xl transition-opacity ${isDark ? 'opacity-20 group-hover:opacity-30' : 'opacity-10 group-hover:opacity-20'}`}
         style={{ backgroundColor: color }}
       />
       
@@ -113,13 +119,15 @@ function MetricCard({
         <div className="flex items-start justify-between mb-4">
           <div 
             className="w-12 h-12 rounded-xl flex items-center justify-center"
-            style={{ backgroundColor: `${color}20` }}
+            style={{ backgroundColor: `${color}${isDark ? '20' : '15'}` }}
           >
             <div style={{ color }}>{icon}</div>
           </div>
           {change !== undefined && (
             <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${
-              isPositive ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'
+              isPositive 
+                ? isDark ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-50 text-emerald-600' 
+                : isDark ? 'bg-red-500/20 text-red-400' : 'bg-red-50 text-red-600'
             }`}>
               <svg className={`w-3 h-3 ${isPositive ? '' : 'rotate-180'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
@@ -129,13 +137,13 @@ function MetricCard({
           )}
         </div>
         
-        <p className="text-sm font-medium text-slate-400 mb-1">{title}</p>
-        <p className="text-3xl font-bold text-white tracking-tight">
+        <p className={`text-sm font-medium mb-1 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>{title}</p>
+        <p className={`text-3xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
           <AnimatedNumber value={value} suffix={suffix} />
         </p>
         
         {changeLabel && (
-          <p className="text-xs text-slate-500 mt-1">{changeLabel}</p>
+          <p className={`text-xs mt-1 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>{changeLabel}</p>
         )}
         
         {sparkData && (
@@ -166,24 +174,29 @@ function ServiceCard({
   stats?: { label: string; value: string | number }[];
   isLive?: boolean;
 }) {
+  const { isDark } = useTheme();
   return (
     <Link
       to={href}
-      className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#1a1a2e] to-[#16162a] border border-white/5 p-6 hover:border-white/20 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/40"
+      className={`group relative overflow-hidden rounded-2xl border p-6 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl ${
+        isDark 
+          ? 'bg-gradient-to-br from-[#1a1a2e] to-[#16162a] border-white/5 hover:border-white/20 hover:shadow-black/40' 
+          : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-gray-200/60'
+      }`}
     >
       {/* Animated gradient border on hover */}
       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
         <div 
           className="absolute inset-0 rounded-2xl"
           style={{ 
-            background: `linear-gradient(135deg, ${color}20, transparent, ${color}10)`,
+            background: `linear-gradient(135deg, ${color}${isDark ? '20' : '10'}, transparent, ${color}${isDark ? '10' : '05'})`,
           }}
         />
       </div>
       
       {/* Glow */}
       <div 
-        className="absolute -top-10 -right-10 w-32 h-32 rounded-full blur-3xl opacity-0 group-hover:opacity-30 transition-opacity duration-500"
+        className={`absolute -top-10 -right-10 w-32 h-32 rounded-full blur-3xl opacity-0 transition-opacity duration-500 ${isDark ? 'group-hover:opacity-30' : 'group-hover:opacity-20'}`}
         style={{ backgroundColor: color }}
       />
       
@@ -199,30 +212,32 @@ function ServiceCard({
             {icon}
           </div>
           {isLive && (
-            <div className="flex items-center gap-2 text-xs text-emerald-400">
+            <div className="flex items-center gap-2 text-xs text-emerald-500 font-medium">
               <LivePulse />
               LIVE
             </div>
           )}
         </div>
         
-        <h3 className="text-lg font-bold text-white mb-1 group-hover:text-opacity-100">{name}</h3>
-        <p className="text-sm text-slate-400 mb-4">{description}</p>
+        <h3 className={`text-lg font-bold mb-1 group-hover:text-opacity-100 ${isDark ? 'text-white' : 'text-gray-900'}`}>{name}</h3>
+        <p className={`text-sm mb-4 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>{description}</p>
         
         {stats && stats.length > 0 && (
-          <div className="flex gap-6 pt-4 border-t border-white/5">
+          <div className={`flex gap-6 pt-4 border-t ${isDark ? 'border-white/5' : 'border-gray-100'}`}>
             {stats.map((stat, i) => (
               <div key={i}>
-                <p className="text-xl font-bold text-white">{stat.value}</p>
-                <p className="text-xs text-slate-500 uppercase tracking-wider">{stat.label}</p>
+                <p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{stat.value}</p>
+                <p className={`text-xs uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>{stat.label}</p>
               </div>
             ))}
           </div>
         )}
         
         {/* Arrow indicator */}
-        <div className="absolute bottom-6 right-6 w-8 h-8 rounded-full bg-white/5 flex items-center justify-center opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-300">
-          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <div className={`absolute bottom-6 right-6 w-8 h-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-300 ${
+          isDark ? 'bg-white/5' : 'bg-gray-100'
+        }`}>
+          <svg className={`w-4 h-4 ${isDark ? 'text-white' : 'text-gray-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
           </svg>
         </div>
@@ -245,6 +260,7 @@ function ActivityItem({
   time: string;
   status: 'success' | 'pending' | 'error' | 'info';
 }) {
+  const { isDark } = useTheme();
   const typeConfig = {
     ride: { color: '#3b82f6', icon: <CarIcon /> },
     driver: { color: '#8b5cf6', icon: <UserIcon /> },
@@ -261,27 +277,31 @@ function ActivityItem({
   };
 
   return (
-    <div className="flex items-start gap-4 py-4 border-b border-white/5 last:border-0 group hover:bg-white/[0.02] px-2 -mx-2 rounded-lg transition-colors">
+    <div className={`flex items-start gap-4 py-4 border-b last:border-0 group px-2 -mx-2 rounded-lg transition-colors ${
+      isDark 
+        ? 'border-white/5 hover:bg-white/[0.02]' 
+        : 'border-gray-100 hover:bg-gray-50'
+    }`}>
       <div 
         className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-        style={{ backgroundColor: `${typeConfig[type].color}20` }}
+        style={{ backgroundColor: `${typeConfig[type].color}${isDark ? '20' : '15'}` }}
       >
-        <div className="text-white scale-75" style={{ color: typeConfig[type].color }}>
+        <div className="scale-75" style={{ color: typeConfig[type].color }}>
           {typeConfig[type].icon}
         </div>
       </div>
       
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <p className="text-sm font-medium text-white truncate">{title}</p>
+          <p className={`text-sm font-medium truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{title}</p>
           <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${statusColors[status]}`} />
         </div>
         {subtitle && (
-          <p className="text-xs text-slate-500 truncate mt-0.5">{subtitle}</p>
+          <p className={`text-xs truncate mt-0.5 ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>{subtitle}</p>
         )}
       </div>
       
-      <div className="text-xs text-slate-500 whitespace-nowrap">
+      <div className={`text-xs whitespace-nowrap ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
         {time}
       </div>
     </div>
@@ -290,18 +310,23 @@ function ActivityItem({
 
 // Quick action button
 function QuickAction({ icon, label, onClick, color }: { icon: React.ReactNode; label: string; onClick?: () => void; color: string }) {
+  const { isDark } = useTheme();
   return (
     <button 
       onClick={onClick}
-      className="flex flex-col items-center gap-2 p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-all group"
+      className={`flex flex-col items-center gap-2 p-4 rounded-xl transition-all group ${
+        isDark 
+          ? 'bg-white/5 hover:bg-white/10' 
+          : 'bg-gray-50 hover:bg-gray-100'
+      }`}
     >
       <div 
         className="w-12 h-12 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform"
-        style={{ backgroundColor: `${color}20` }}
+        style={{ backgroundColor: `${color}${isDark ? '20' : '15'}` }}
       >
         <div style={{ color }}>{icon}</div>
       </div>
-      <span className="text-xs text-slate-400 font-medium">{label}</span>
+      <span className={`text-xs font-medium ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{label}</span>
     </button>
   );
 }
@@ -421,6 +446,7 @@ function CogIcon() {
 
 export default function DashboardHome() {
   const { currentCity } = useCity();
+  const { isDark } = useTheme();
   const [stats, setStats] = useState<any>(null);
   const [recentRides, setRecentRides] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -476,10 +502,10 @@ export default function DashboardHome() {
       <div className="min-h-[80vh] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="relative">
-            <div className="w-16 h-16 border-4 border-white/10 rounded-full" />
+            <div className={`w-16 h-16 border-4 rounded-full ${isDark ? 'border-white/10' : 'border-gray-200'}`} />
             <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-blue-500 rounded-full animate-spin" />
           </div>
-          <p className="text-slate-400 text-sm">Loading command center...</p>
+          <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>Loading command center...</p>
         </div>
       </div>
     );
@@ -495,11 +521,15 @@ export default function DashboardHome() {
   return (
     <div className="space-y-8 pb-8">
       {/* Hero Header */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1a1a2e] via-[#16162a] to-[#0f0f1a] border border-white/5 p-8">
+      <div className={`relative overflow-hidden rounded-3xl border p-8 ${
+        isDark 
+          ? 'bg-gradient-to-br from-[#1a1a2e] via-[#16162a] to-[#0f0f1a] border-white/5' 
+          : 'bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 border-blue-400/20'
+      }`}>
         {/* Animated background */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+          <div className={`absolute -top-40 -right-40 w-80 h-80 rounded-full blur-3xl animate-pulse ${isDark ? 'bg-blue-500/20' : 'bg-white/20'}`} />
+          <div className={`absolute -bottom-40 -left-40 w-80 h-80 rounded-full blur-3xl animate-pulse ${isDark ? 'bg-purple-500/20' : 'bg-white/10'}`} style={{ animationDelay: '1s' }} />
         </div>
         
         <div className="relative">
@@ -507,12 +537,12 @@ export default function DashboardHome() {
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <LivePulse />
-                <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Live Operations</span>
+                <span className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-emerald-400' : 'text-emerald-300'}`}>Live Operations</span>
               </div>
               <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2">
                 {greeting}, Admin
               </h1>
-              <p className="text-lg text-slate-400">
+              <p className={`text-lg ${isDark ? 'text-slate-400' : 'text-blue-100'}`}>
                 Managing <span className="text-white font-semibold">{currentCity?.name || 'Raceef'}</span> operations
               </p>
             </div>
@@ -521,7 +551,7 @@ export default function DashboardHome() {
               <div className="text-4xl lg:text-5xl font-bold text-white font-mono tracking-tight">
                 {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
               </div>
-              <div className="text-sm text-slate-500">
+              <div className={`text-sm ${isDark ? 'text-slate-500' : 'text-blue-200'}`}>
                 {currentTime.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
               </div>
             </div>
@@ -572,8 +602,8 @@ export default function DashboardHome() {
       {/* Key Metrics */}
       <div>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-white">Key Metrics</h2>
-          <Link to="/debug" className="text-sm text-blue-400 hover:text-blue-300 transition-colors">
+          <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Key Metrics</h2>
+          <Link to="/debug" className="text-sm text-blue-500 hover:text-blue-600 transition-colors">
             View Analytics →
           </Link>
         </div>
@@ -618,7 +648,7 @@ export default function DashboardHome() {
       {/* Service Modules */}
       <div>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-white">Services</h2>
+          <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Services</h2>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <ServiceCard
@@ -675,14 +705,14 @@ export default function DashboardHome() {
       {/* Bottom Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Activity */}
-        <div className="lg:col-span-2 rounded-2xl bg-gradient-to-br from-[#1a1a2e] to-[#16162a] border border-white/5 overflow-hidden">
-          <div className="p-6 border-b border-white/5">
+        <div className={`lg:col-span-2 rounded-2xl border overflow-hidden ${isDark ? 'bg-gradient-to-br from-[#1a1a2e] to-[#16162a] border-white/5' : 'bg-white border-gray-200'}`}>
+          <div className={`p-6 border-b ${isDark ? 'border-white/5' : 'border-gray-100'}`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <h3 className="text-lg font-bold text-white">Recent Activity</h3>
+                <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Recent Activity</h3>
                 <LivePulse />
               </div>
-              <Link to="/rides" className="text-sm text-blue-400 hover:text-blue-300 transition-colors">
+              <Link to="/rides" className="text-sm text-blue-500 hover:text-blue-600 transition-colors">
                 View All →
               </Link>
             </div>
@@ -701,11 +731,11 @@ export default function DashboardHome() {
               ))
             ) : (
               <div className="text-center py-12">
-                <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-4 text-slate-500">
+                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 ${isDark ? 'bg-white/5 text-slate-500' : 'bg-gray-100 text-gray-400'}`}>
                   <CarIcon />
                 </div>
-                <p className="text-slate-400">No recent activity</p>
-                <p className="text-sm text-slate-600 mt-1">Rides will appear here in real-time</p>
+                <p className={isDark ? 'text-slate-400' : 'text-gray-500'}>No recent activity</p>
+                <p className={`text-sm mt-1 ${isDark ? 'text-slate-600' : 'text-gray-400'}`}>Rides will appear here in real-time</p>
               </div>
             )}
           </div>
@@ -714,8 +744,8 @@ export default function DashboardHome() {
         {/* Quick Actions & City Modules */}
         <div className="space-y-6">
           {/* Quick Actions */}
-          <div className="rounded-2xl bg-gradient-to-br from-[#1a1a2e] to-[#16162a] border border-white/5 p-6">
-            <h3 className="text-lg font-bold text-white mb-4">Quick Actions</h3>
+          <div className={`rounded-2xl border p-6 ${isDark ? 'bg-gradient-to-br from-[#1a1a2e] to-[#16162a] border-white/5' : 'bg-white border-gray-200'}`}>
+            <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Quick Actions</h3>
             <div className="grid grid-cols-3 gap-3">
               <QuickAction icon={<UserPlusIcon />} label="Add Driver" color="#10b981" />
               <QuickAction icon={<CogIcon />} label="Settings" color="#6366f1" />
@@ -725,10 +755,10 @@ export default function DashboardHome() {
 
           {/* City Modules Status */}
           {currentCity && (
-            <div className="rounded-2xl bg-gradient-to-br from-[#1a1a2e] to-[#16162a] border border-white/5 p-6">
+            <div className={`rounded-2xl border p-6 ${isDark ? 'bg-gradient-to-br from-[#1a1a2e] to-[#16162a] border-white/5' : 'bg-white border-gray-200'}`}>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-white">Active Modules</h3>
-                <span className="text-xs text-slate-500">{currentCity.name}</span>
+                <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Active Modules</h3>
+                <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>{currentCity.name}</span>
               </div>
               <div className="space-y-3">
                 {[
@@ -737,22 +767,22 @@ export default function DashboardHome() {
                   { name: 'Pharmacy', enabled: currentCity.modules?.pharmacy?.enabled, icon: <PillIcon />, color: '#ef4444' },
                   { name: 'Content', enabled: currentCity.modules?.content?.enabled, icon: <LayersIcon />, color: '#f59e0b' },
                 ].map(mod => (
-                  <div key={mod.name} className="flex items-center justify-between p-3 rounded-xl bg-white/5">
+                  <div key={mod.name} className={`flex items-center justify-between p-3 rounded-xl ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
                     <div className="flex items-center gap-3">
                       <div 
                         className="w-8 h-8 rounded-lg flex items-center justify-center"
-                        style={{ backgroundColor: `${mod.color}20` }}
+                        style={{ backgroundColor: `${mod.color}${isDark ? '20' : '15'}` }}
                       >
                         <div className="scale-75" style={{ color: mod.color }}>{mod.icon}</div>
                       </div>
-                      <span className="text-sm font-medium text-white">{mod.name}</span>
+                      <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{mod.name}</span>
                     </div>
                     <div className={`flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-semibold ${
                       mod.enabled 
-                        ? 'bg-emerald-500/20 text-emerald-400' 
-                        : 'bg-slate-500/20 text-slate-400'
+                        ? isDark ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-50 text-emerald-600'
+                        : isDark ? 'bg-slate-500/20 text-slate-400' : 'bg-gray-100 text-gray-500'
                     }`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${mod.enabled ? 'bg-emerald-400' : 'bg-slate-400'}`} />
+                      <span className={`w-1.5 h-1.5 rounded-full ${mod.enabled ? 'bg-emerald-500' : (isDark ? 'bg-slate-400' : 'bg-gray-400')}`} />
                       {mod.enabled ? 'Active' : 'Off'}
                     </div>
                   </div>

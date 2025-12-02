@@ -2,6 +2,7 @@ import { ReactNode, useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCity } from '../contexts/CityContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { api } from '../lib/api';
 
 // =============================================================================
@@ -92,6 +93,16 @@ const Icons = {
   logout: (
     <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+    </svg>
+  ),
+  sun: (
+    <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+    </svg>
+  ),
+  moon: (
+    <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
     </svg>
   ),
 };
@@ -196,8 +207,15 @@ function WindowTitleBar({
   showBack?: boolean;
   onBack?: () => void;
 }) {
+  const { isDark, toggleTheme } = useTheme();
+  
   return (
-    <div className="h-12 bg-gradient-to-b from-[#16162a] to-[#12121f] border-b border-white/5 flex items-center px-4 relative select-none">
+    <div className={`h-12 border-b flex items-center px-4 relative select-none transition-colors duration-200
+      ${isDark 
+        ? 'bg-gradient-to-b from-[#16162a] to-[#12121f] border-white/5' 
+        : 'bg-gradient-to-b from-gray-100 to-gray-50 border-gray-200'
+      }`}
+    >
       {/* Traffic lights */}
       <div className="flex items-center gap-2">
         <div className="w-3 h-3 rounded-full bg-[#ff5f57] border border-[#e14640] hover:brightness-110 cursor-pointer" />
@@ -210,14 +228,27 @@ function WindowTitleBar({
         {showBack && onBack && (
           <button 
             onClick={onBack}
-            className="absolute left-20 flex items-center gap-1 text-[13px] text-blue-400 hover:text-blue-300 transition-colors"
+            className="absolute left-20 flex items-center gap-1 text-[13px] text-blue-500 hover:text-blue-600 transition-colors"
           >
             {Icons.chevronLeft}
             <span>Back</span>
           </button>
         )}
-        <span className="text-[13px] font-medium text-slate-400">{title}</span>
+        <span className={`text-[13px] font-medium ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{title}</span>
       </div>
+      
+      {/* Theme toggle */}
+      <button
+        onClick={toggleTheme}
+        className={`p-2 rounded-lg transition-all duration-200 ${
+          isDark 
+            ? 'text-slate-400 hover:text-white hover:bg-white/10' 
+            : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200'
+        }`}
+        title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      >
+        {isDark ? Icons.sun : Icons.moon}
+      </button>
     </div>
   );
 }
@@ -240,6 +271,7 @@ function Sidebar({
   const location = useLocation();
   const { currentCity, cities, setCurrentCity } = useCity();
   const { admin, logout } = useAuth();
+  const { isDark } = useTheme();
   const navigate = useNavigate();
   const [showCityDropdown, setShowCityDropdown] = useState(false);
   const [systemStatus, setSystemStatus] = useState<'online' | 'offline'>('offline');
@@ -275,19 +307,27 @@ function Sidebar({
 
       {/* Sidebar */}
       <aside className={`
-        fixed top-0 left-0 z-50 h-full w-[260px] bg-[#0f0f14]/95 backdrop-blur-xl 
-        border-r border-white/5
+        fixed top-0 left-0 z-50 h-full w-[260px] backdrop-blur-xl 
+        border-r transition-colors duration-200
         transform transition-transform duration-300 ease-out
         lg:translate-x-0 lg:static lg:z-auto
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         flex flex-col
+        ${isDark 
+          ? 'bg-[#0f0f14]/95 border-white/5' 
+          : 'bg-white/95 border-gray-200'
+        }
       `}>
         {/* City Header */}
-        <div className="p-4 border-b border-white/5">
+        <div className={`p-4 border-b ${isDark ? 'border-white/5' : 'border-gray-100'}`}>
           <div className="relative">
             <button
               onClick={() => setShowCityDropdown(!showCityDropdown)}
-              className="w-full flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 rounded-xl border border-white/5 transition-colors"
+              className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-colors ${
+                isDark 
+                  ? 'bg-white/5 hover:bg-white/10 border-white/5' 
+                  : 'bg-gray-50 hover:bg-gray-100 border-gray-200'
+              }`}
             >
               <div 
                 className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-semibold text-lg shadow-md"
@@ -296,21 +336,23 @@ function Sidebar({
                 {currentCity?.name?.[0] || 'R'}
               </div>
               <div className="flex-1 text-left min-w-0">
-                <p className="text-[15px] font-semibold text-white truncate">
+                <p className={`text-[15px] font-semibold truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   {currentCity?.name || 'Select City'}
                 </p>
-                <p className="text-[12px] text-slate-500">
+                <p className={`text-[12px] ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>
                   {currentCity?.country_code || 'No city selected'}
                 </p>
               </div>
-              <div className={`transition-transform text-slate-400 ${showCityDropdown ? 'rotate-180' : ''}`}>
+              <div className={`transition-transform ${isDark ? 'text-slate-400' : 'text-gray-400'} ${showCityDropdown ? 'rotate-180' : ''}`}>
                 {Icons.chevronDown}
               </div>
             </button>
 
             {/* City Dropdown */}
             {showCityDropdown && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-[#1a1a2e] rounded-xl border border-white/10 shadow-xl z-50 py-2 max-h-64 overflow-y-auto">
+              <div className={`absolute top-full left-0 right-0 mt-2 rounded-xl border shadow-xl z-50 py-2 max-h-64 overflow-y-auto ${
+                isDark ? 'bg-[#1a1a2e] border-white/10' : 'bg-white border-gray-200'
+              }`}>
                 {cities.length > 0 ? cities.map(city => (
                   <button
                     key={city.id}
@@ -319,9 +361,9 @@ function Sidebar({
                       setShowCityDropdown(false);
                       onModuleChange(null); // Go back to apps grid
                     }}
-                    className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/5 transition-colors ${
-                      currentCity?.id === city.id ? 'bg-blue-500/20' : ''
-                    }`}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 transition-colors ${
+                      isDark ? 'hover:bg-white/5' : 'hover:bg-gray-50'
+                    } ${currentCity?.id === city.id ? 'bg-blue-500/20' : ''}`}
                   >
                     <div 
                       className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-semibold"
@@ -329,21 +371,21 @@ function Sidebar({
                     >
                       {city.name[0]}
                     </div>
-                    <span className={`text-[14px] ${currentCity?.id === city.id ? 'font-semibold text-blue-400' : 'text-white'}`}>
+                    <span className={`text-[14px] ${currentCity?.id === city.id ? 'font-semibold text-blue-500' : (isDark ? 'text-white' : 'text-gray-900')}`}>
                       {city.name}
                     </span>
                     {city.is_default && (
-                      <span className="ml-auto text-[11px] text-slate-500 bg-white/5 px-2 py-0.5 rounded-full">
+                      <span className={`ml-auto text-[11px] px-2 py-0.5 rounded-full ${isDark ? 'text-slate-500 bg-white/5' : 'text-gray-500 bg-gray-100'}`}>
                         Default
                       </span>
                     )}
                   </button>
                 )) : (
                   <div className="px-4 py-6 text-center">
-                    <p className="text-[13px] text-slate-500">No cities configured</p>
+                    <p className={`text-[13px] ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>No cities configured</p>
                     <Link 
                       to="/cities" 
-                      className="text-[13px] text-blue-400 hover:underline mt-1 inline-block"
+                      className="text-[13px] text-blue-500 hover:underline mt-1 inline-block"
                       onClick={() => setShowCityDropdown(false)}
                     >
                       Add a city →
@@ -362,7 +404,7 @@ function Sidebar({
             <>
               <button
                 onClick={() => onModuleChange(null)}
-                className="flex items-center gap-2 px-3 py-2 mb-4 text-[13px] text-blue-400 hover:text-blue-300 transition-colors"
+                className="flex items-center gap-2 px-3 py-2 mb-4 text-[13px] text-blue-500 hover:text-blue-600 transition-colors"
               >
                 {Icons.chevronLeft}
                 <span>All Apps</span>
@@ -377,8 +419,8 @@ function Sidebar({
                     {activeModule.icon}
                   </div>
                   <div>
-                    <p className="text-[15px] font-semibold text-white">{activeModule.name}</p>
-                    <p className="text-[12px] text-slate-500">{activeModule.description}</p>
+                    <p className={`text-[15px] font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{activeModule.name}</p>
+                    <p className={`text-[12px] ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>{activeModule.description}</p>
                   </div>
                 </div>
               </div>
@@ -394,10 +436,12 @@ function Sidebar({
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] transition-all ${
                         isActive
                           ? 'bg-blue-500 text-white font-medium'
-                          : 'text-slate-300 hover:bg-white/5'
+                          : isDark 
+                            ? 'text-slate-300 hover:bg-white/5' 
+                            : 'text-gray-700 hover:bg-gray-100'
                       }`}
                     >
-                      <span className={isActive ? 'text-white' : 'text-slate-500'}>
+                      <span className={isActive ? 'text-white' : (isDark ? 'text-slate-500' : 'text-gray-400')}>
                         {item.icon}
                       </span>
                       {item.label}
@@ -416,17 +460,17 @@ function Sidebar({
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] transition-all mb-4 ${
                   location.pathname === '/'
                     ? 'bg-blue-500 text-white font-medium'
-                    : 'text-slate-300 hover:bg-white/5'
+                    : isDark ? 'text-slate-300 hover:bg-white/5' : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
-                <span className={location.pathname === '/' ? 'text-white' : 'text-slate-500'}>
+                <span className={location.pathname === '/' ? 'text-white' : (isDark ? 'text-slate-500' : 'text-gray-400')}>
                   {Icons.home}
                 </span>
                 Overview
               </Link>
 
               <div className="mb-3">
-                <p className="px-3 text-[11px] font-semibold text-slate-600 uppercase tracking-wider">
+                <p className={`px-3 text-[11px] font-semibold uppercase tracking-wider ${isDark ? 'text-slate-600' : 'text-gray-400'}`}>
                   Apps
                 </p>
               </div>
@@ -436,7 +480,9 @@ function Sidebar({
                   <button
                     key={mod.id}
                     onClick={() => onModuleChange(mod)}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] text-slate-300 hover:bg-white/5 transition-all group"
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] transition-all group ${
+                      isDark ? 'text-slate-300 hover:bg-white/5' : 'text-gray-700 hover:bg-gray-100'
+                    }`}
                   >
                     <div 
                       className="w-8 h-8 rounded-lg flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform"
@@ -447,7 +493,7 @@ function Sidebar({
                     <div className="flex-1 text-left">
                       <p className="font-medium">{mod.name}</p>
                     </div>
-                    <svg className="w-4 h-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <svg className={`w-4 h-4 ${isDark ? 'text-slate-600' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
                   </button>
@@ -458,7 +504,7 @@ function Sidebar({
         </nav>
 
         {/* Bottom section */}
-        <div className="p-4 border-t border-white/5">
+        <div className={`p-4 border-t ${isDark ? 'border-white/5' : 'border-gray-100'}`}>
           {/* Status */}
           <div className={`flex items-center gap-2 px-3 py-2 mb-3 rounded-lg ${
             systemStatus === 'online' ? 'bg-emerald-500/10' : 'bg-red-500/10'
@@ -467,7 +513,7 @@ function Sidebar({
               systemStatus === 'online' ? 'bg-emerald-500' : 'bg-red-500'
             }`} />
             <span className={`text-[12px] font-medium ${
-              systemStatus === 'online' ? 'text-emerald-400' : 'text-red-400'
+              systemStatus === 'online' ? 'text-emerald-500' : 'text-red-500'
             }`}>
               {systemStatus === 'online' ? 'System Online' : 'System Offline'}
             </span>
@@ -479,12 +525,16 @@ function Sidebar({
               {admin?.name?.[0] || admin?.email?.[0] || 'A'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-medium text-white truncate">{admin?.name || 'Admin'}</p>
-              <p className="text-[11px] text-slate-500 truncate">{admin?.email}</p>
+              <p className={`text-[13px] font-medium truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{admin?.name || 'Admin'}</p>
+              <p className={`text-[11px] truncate ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>{admin?.email}</p>
             </div>
             <button 
               onClick={handleLogout}
-              className="p-2 text-slate-500 hover:text-red-400 transition-colors rounded-lg hover:bg-red-500/10"
+              className={`p-2 transition-colors rounded-lg ${
+                isDark 
+                  ? 'text-slate-500 hover:text-red-400 hover:bg-red-500/10' 
+                  : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
+              }`}
               title="Sign out"
             >
               {Icons.logout}
@@ -509,8 +559,13 @@ export function Card({
   className?: string;
   padding?: boolean;
 }) {
+  const { isDark } = useTheme();
   return (
-    <div className={`bg-gradient-to-br from-[#1a1a2e] to-[#16162a] rounded-2xl border border-white/5 ${padding ? 'p-6' : ''} ${className}`}>
+    <div className={`rounded-2xl border transition-colors duration-200 ${
+      isDark 
+        ? 'bg-gradient-to-br from-[#1a1a2e] to-[#16162a] border-white/5' 
+        : 'bg-white border-gray-200 shadow-sm'
+    } ${padding ? 'p-6' : ''} ${className}`}>
       {children}
     </div>
   );
@@ -525,11 +580,12 @@ export function CardHeader({
   description?: string;
   action?: ReactNode;
 }) {
+  const { isDark } = useTheme();
   return (
     <div className="flex items-start justify-between mb-6">
       <div>
-        <h2 className="text-[17px] font-semibold text-white">{title}</h2>
-        {description && <p className="text-[13px] text-slate-500 mt-0.5">{description}</p>}
+        <h2 className={`text-[17px] font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{title}</h2>
+        {description && <p className={`text-[13px] mt-0.5 ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>{description}</p>}
       </div>
       {action}
     </div>
@@ -544,6 +600,7 @@ export default function LayoutV2({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeModule, setActiveModule] = useState<AppModule | null>(null);
   const location = useLocation();
+  const { isDark } = useTheme();
 
   // Auto-detect active module from current path
   useEffect(() => {
@@ -569,7 +626,7 @@ export default function LayoutV2({ children }: { children: ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] flex">
+    <div className={`min-h-screen flex transition-colors duration-200 ${isDark ? 'bg-[#0a0a0f]' : 'bg-gray-50'}`}>
       <Sidebar 
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)}
@@ -586,17 +643,23 @@ export default function LayoutV2({ children }: { children: ReactNode }) {
         />
         
         {/* Mobile menu button */}
-        <div className="lg:hidden flex items-center h-12 px-4 bg-[#0f0f14] border-b border-white/5">
+        <div className={`lg:hidden flex items-center h-12 px-4 border-b ${
+          isDark ? 'bg-[#0f0f14] border-white/5' : 'bg-white border-gray-200'
+        }`}>
           <button 
             onClick={() => setSidebarOpen(true)}
-            className="p-2 -ml-2 text-slate-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors"
+            className={`p-2 -ml-2 rounded-lg transition-colors ${
+              isDark 
+                ? 'text-slate-400 hover:text-white hover:bg-white/5' 
+                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+            }`}
           >
             {Icons.menu}
           </button>
         </div>
         
         {/* Main Content */}
-        <main className="flex-1 overflow-auto p-6 bg-[#0a0a0f]">
+        <main className={`flex-1 overflow-auto p-6 transition-colors duration-200 ${isDark ? 'bg-[#0a0a0f]' : 'bg-gray-50'}`}>
           <div className="max-w-7xl mx-auto">
             {children}
           </div>
