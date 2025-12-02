@@ -17,6 +17,7 @@ import {
   Building2,
   CheckCircle,
   Pill,
+  Layers,
 } from 'lucide-react';
 
 interface NavItem {
@@ -28,6 +29,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { name: 'Dashboard', path: '/', icon: <LayoutDashboard className="w-5 h-5" /> },
   { name: 'Live Map', path: '/map', icon: <Map className="w-5 h-5" /> },
+  { name: 'Map Pills', path: '/map-pills', icon: <Layers className="w-5 h-5" /> },
   { name: 'Rides', path: '/rides', icon: <MapPin className="w-5 h-5" /> },
   { name: 'Drivers', path: '/drivers', icon: <Car className="w-5 h-5" /> },
   { name: 'Driver Approval', path: '/drivers/approval', icon: <UserPlus className="w-5 h-5" /> },

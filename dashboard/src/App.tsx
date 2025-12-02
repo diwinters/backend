@@ -14,6 +14,7 @@ import LiveMap from './pages/LiveMap';
 import Stays from './pages/Stays';
 import StayPostsApproval from './pages/StayPostsApproval';
 import Medicines from './pages/Medicines';
+import MapPills from './pages/MapPills';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { admin, isLoading } = useAuth();
@@ -54,6 +55,7 @@ function AppRoutes() {
                 <Route path="/stays" element={<Stays />} />
                 <Route path="/stay-posts" element={<StayPostsApproval />} />
                 <Route path="/medicines" element={<Medicines />} />
+                <Route path="/map-pills" element={<MapPills />} />
                 <Route path="/map" element={<LiveMap />} />
                 <Route path="/users" element={<Users />} />
                 <Route path="/debug" element={<Debug />} />

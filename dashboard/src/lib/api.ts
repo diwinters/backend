@@ -300,6 +300,63 @@ class ApiClient {
       method: 'DELETE',
     }, '/api/medicines');
   }
+
+  // Map Pills
+  async getMapPillsAdmin() {
+    return this.request<{ pills: any[] }>('/admin', {}, '/api/map-pills');
+  }
+
+  async createMapPill(data: { name: string; name_ar?: string; icon?: string; color?: string; sort_order?: number }) {
+    return this.request<any>('/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }, '/api/map-pills');
+  }
+
+  async updateMapPill(id: number, data: { name?: string; name_ar?: string; icon?: string; color?: string; sort_order?: number; is_active?: boolean }) {
+    return this.request<any>(`/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }, '/api/map-pills');
+  }
+
+  async deleteMapPill(id: number) {
+    return this.request<{ message: string }>(`/${id}`, {
+      method: 'DELETE',
+    }, '/api/map-pills');
+  }
+
+  async toggleMapPill(id: number) {
+    return this.request<any>(`/${id}/toggle`, {
+      method: 'POST',
+    }, '/api/map-pills');
+  }
+
+  async createMapPlace(pillId: number, data: any) {
+    return this.request<any>(`/${pillId}/places`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }, '/api/map-pills');
+  }
+
+  async updateMapPlace(id: number, data: any) {
+    return this.request<any>(`/places/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }, '/api/map-pills');
+  }
+
+  async deleteMapPlace(id: number) {
+    return this.request<{ message: string }>(`/places/${id}`, {
+      method: 'DELETE',
+    }, '/api/map-pills');
+  }
+
+  async toggleMapPlace(id: number) {
+    return this.request<any>(`/places/${id}/toggle`, {
+      method: 'POST',
+    }, '/api/map-pills');
+  }
 }
 
 export const api = new ApiClient();
