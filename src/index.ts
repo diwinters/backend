@@ -14,6 +14,7 @@ import staysRouter from './routes/stays';
 import stayPostsRouter from './routes/stay-posts';
 import medicinesRouter from './routes/medicines';
 import mapPillsRouter from './routes/map-pills';
+import citiesRouter from './routes/cities';
 
 // Load environment variables
 dotenv.config();
@@ -58,6 +59,7 @@ app.use('/api/stays', staysRouter);
 app.use('/api/stay-posts', stayPostsRouter);
 app.use('/api/medicines', medicinesRouter);
 app.use('/api/map-pills', mapPillsRouter);
+app.use('/api/cities', citiesRouter);
 
 // Serve admin dashboard static files
 const dashboardPath = path.join(__dirname, '../dashboard/dist');

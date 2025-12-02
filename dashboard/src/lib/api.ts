@@ -357,6 +357,74 @@ class ApiClient {
       method: 'POST',
     }, '/api/map-pills');
   }
+
+  // Cities
+  async getCities() {
+    return this.request<{ cities: any[] }>('/', {}, '/api/cities');
+  }
+
+  async getCitiesAdmin() {
+    return this.request<{ cities: any[] }>('/admin/all', {}, '/api/cities');
+  }
+
+  async getCityStats() {
+    return this.request<{ stats: any[] }>('/admin/stats', {}, '/api/cities');
+  }
+
+  async getCity(slug: string) {
+    return this.request<{ city: any }>(`/${slug}`, {}, '/api/cities');
+  }
+
+  async createCity(data: {
+    slug: string;
+    name: string;
+    name_ar?: string;
+    country_code?: string;
+    timezone?: string;
+    currency?: string;
+    center_lat: number;
+    center_lng: number;
+    default_zoom?: number;
+    boundary?: any;
+    modules?: any;
+    settings?: any;
+    is_active?: boolean;
+    is_default?: boolean;
+    is_coming_soon?: boolean;
+    sort_order?: number;
+  }) {
+    return this.request<{ city: any }>('/admin', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }, '/api/cities');
+  }
+
+  async updateCity(id: number, data: any) {
+    return this.request<{ city: any }>(`/admin/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }, '/api/cities');
+  }
+
+  async deleteCity(id: number) {
+    return this.request<{ message: string }>(`/admin/${id}`, {
+      method: 'DELETE',
+    }, '/api/cities');
+  }
+
+  async updateCityModules(id: number, modules: any) {
+    return this.request<{ city: any }>(`/admin/${id}/modules`, {
+      method: 'PUT',
+      body: JSON.stringify({ modules }),
+    }, '/api/cities');
+  }
+
+  async updateCityBoundary(id: number, boundary: any) {
+    return this.request<{ city: any }>(`/admin/${id}/boundary`, {
+      method: 'PUT',
+      body: JSON.stringify({ boundary }),
+    }, '/api/cities');
+  }
 }
 
 export const api = new ApiClient();

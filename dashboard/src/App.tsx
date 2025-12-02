@@ -1,8 +1,9 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import Layout from './components/Layout';
+import { CityProvider } from './contexts/CityContext';
+import LayoutV2 from './components/LayoutV2';
 import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
+import DashboardHome from './pages/DashboardHome';
 import Rides from './pages/Rides';
 import RideDetail from './pages/RideDetail';
 import Drivers from './pages/Drivers';
@@ -15,6 +16,7 @@ import Stays from './pages/Stays';
 import StayPostsApproval from './pages/StayPostsApproval';
 import Medicines from './pages/Medicines';
 import MapPills from './pages/MapPills';
+import Cities from './pages/Cities';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { admin, isLoading } = useAuth();
@@ -44,23 +46,26 @@ function AppRoutes() {
         path="/*"
         element={
           <ProtectedRoute>
-            <Layout>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/rides" element={<Rides />} />
-                <Route path="/rides/:id" element={<RideDetail />} />
-                <Route path="/drivers" element={<Drivers />} />
-                <Route path="/drivers/approval" element={<DriversApproval />} />
-                <Route path="/pricing" element={<Pricing />} />
-                <Route path="/stays" element={<Stays />} />
-                <Route path="/stay-posts" element={<StayPostsApproval />} />
-                <Route path="/medicines" element={<Medicines />} />
-                <Route path="/map-pills" element={<MapPills />} />
-                <Route path="/map" element={<LiveMap />} />
-                <Route path="/users" element={<Users />} />
-                <Route path="/debug" element={<Debug />} />
-              </Routes>
-            </Layout>
+            <CityProvider>
+              <LayoutV2>
+                <Routes>
+                  <Route path="/" element={<DashboardHome />} />
+                  <Route path="/rides" element={<Rides />} />
+                  <Route path="/rides/:id" element={<RideDetail />} />
+                  <Route path="/drivers" element={<Drivers />} />
+                  <Route path="/drivers/approval" element={<DriversApproval />} />
+                  <Route path="/pricing" element={<Pricing />} />
+                  <Route path="/stays" element={<Stays />} />
+                  <Route path="/stay-posts" element={<StayPostsApproval />} />
+                  <Route path="/medicines" element={<Medicines />} />
+                  <Route path="/map-pills" element={<MapPills />} />
+                  <Route path="/map" element={<LiveMap />} />
+                  <Route path="/users" element={<Users />} />
+                  <Route path="/cities" element={<Cities />} />
+                  <Route path="/debug" element={<Debug />} />
+                </Routes>
+              </LayoutV2>
+            </CityProvider>
           </ProtectedRoute>
         }
       />
