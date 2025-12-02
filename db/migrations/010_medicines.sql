@@ -52,17 +52,17 @@ CREATE TABLE IF NOT EXISTS medicine_categories (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Insert default categories
+-- Insert default categories (matching therapeutic classes)
 INSERT INTO medicine_categories (slug, name, icon, sort_order) VALUES
-    ('pain_relief', 'Pain Relief', 'pill', 1),
-    ('antibiotics', 'Antibiotics', 'shield', 2),
+    ('pain_relief', 'Pain Relief & Anti-inflammatory', 'pill', 1),
+    ('antibiotics', 'Antibiotics & Anti-Infectives', 'shield', 2),
     ('vitamins', 'Vitamins & Supplements', 'heart', 3),
-    ('cold_flu', 'Cold & Flu', 'thermometer', 4),
-    ('digestive', 'Digestive Health', 'stomach', 5),
-    ('skin_care', 'Skin Care', 'sparkles', 6),
-    ('eye_care', 'Eye Care', 'eye', 7),
-    ('diabetes', 'Diabetes', 'droplet', 8),
-    ('heart', 'Heart & Blood Pressure', 'heart-pulse', 9),
+    ('cold_flu', 'Cold, Flu & Respiratory', 'thermometer', 4),
+    ('digestive', 'Digestive & Gastrointestinal', 'activity', 5),
+    ('skin_care', 'Skin Care & Dermatology', 'sparkles', 6),
+    ('eye_care', 'Eye Care & Ophthalmology', 'eye', 7),
+    ('diabetes', 'Diabetes & Endocrine', 'droplet', 8),
+    ('heart', 'Heart & Cardiovascular', 'heart-pulse', 9),
     ('allergy', 'Allergy', 'flower', 10),
     ('other', 'Other', 'box', 99)
 ON CONFLICT (slug) DO NOTHING;

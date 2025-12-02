@@ -200,6 +200,19 @@ export default function Medicines() {
     }
   };
 
+  // Map therapeutic class to our category slugs
+  const therapeuticToCategory: Record<string, string> = {
+    'cardiovascular': 'heart',
+    'endocrine_diabetes': 'diabetes',
+    'cns': 'other',
+    'anti_infective': 'antibiotics',
+    'gastrointestinal': 'digestive',
+    'analgesics': 'pain_relief',
+    'respiratory': 'cold_flu',
+    'urology': 'other',
+    'dermatology': 'skin_care',
+  };
+
   const handleImport = async () => {
     if (!importFile) return;
     
@@ -209,7 +222,35 @@ export default function Medicines() {
     try {
       const text = await importFile.text();
       const data = JSON.parse(text);
-      const medicines = Array.isArray(data) ? data : data.medicines || [];
+      
+      let medicines: any[] = [];
+      let idToCategoryMap: Record<string, string> = {};
+      
+      // Check if this is a categorized file with medical_intelligence
+      if (data.medical_intelligence?.categorized_medicines?.by_therapeutic_class) {
+        const therapeuticClasses = data.medical_intelligence.categorized_medicines.by_therapeutic_class;
+        for (const [className, ids] of Object.entries(therapeuticClasses)) {
+          const category = therapeuticToCategory[className] || 'other';
+          for (const id of ids as string[]) {
+            idToCategoryMap[id] = category;
+          }
+        }
+      }
+      
+      // Get medicines array
+      if (Array.isArray(data)) {
+        medicines = data;
+      } else if (data.medicines) {
+        medicines = data.medicines;
+      }
+      
+      // Apply category mapping if we have it
+      if (Object.keys(idToCategoryMap).length > 0) {
+        medicines = medicines.map(med => ({
+          ...med,
+          category: idToCategoryMap[med.id] || med.category || 'other'
+        }));
+      }
       
       const result = await api.bulkImportMedicines(medicines);
       setImportResult({ imported: result.imported, skipped: result.skipped });
