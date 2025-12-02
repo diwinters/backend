@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { api } from '../lib/api';
 import {
   MapPin,
@@ -13,8 +13,6 @@ import {
   Layers,
   Circle,
   Pentagon,
-  Palette,
-  GripVertical,
   Eye,
   EyeOff,
   Save,
@@ -49,13 +47,6 @@ interface Pill {
   is_active: boolean;
   places: Place[];
 }
-
-const ICONS = [
-  'map-pin', 'waves', 'hotel', 'building-2', 'utensils', 'compass',
-  'home', 'tree', 'mountain', 'umbrella', 'coffee', 'shopping-bag',
-  'car', 'plane', 'ship', 'train', 'bus', 'bike',
-  'heart', 'star', 'flag', 'camera', 'music', 'film',
-];
 
 const COLORS = [
   '#3B82F6', '#0EA5E9', '#06B6D4', '#14B8A6', '#10B981', '#22C55E',
