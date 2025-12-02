@@ -197,7 +197,7 @@ function WindowTitleBar({
   onBack?: () => void;
 }) {
   return (
-    <div className="h-12 bg-gradient-to-b from-[#e8e8ea] to-[#d8d8da] border-b border-[#c5c5c7] flex items-center px-4 relative select-none">
+    <div className="h-12 bg-gradient-to-b from-[#16162a] to-[#12121f] border-b border-white/5 flex items-center px-4 relative select-none">
       {/* Traffic lights */}
       <div className="flex items-center gap-2">
         <div className="w-3 h-3 rounded-full bg-[#ff5f57] border border-[#e14640] hover:brightness-110 cursor-pointer" />
@@ -210,13 +210,13 @@ function WindowTitleBar({
         {showBack && onBack && (
           <button 
             onClick={onBack}
-            className="absolute left-20 flex items-center gap-1 text-[13px] text-[#007aff] hover:text-[#0055d4] transition-colors"
+            className="absolute left-20 flex items-center gap-1 text-[13px] text-blue-400 hover:text-blue-300 transition-colors"
           >
             {Icons.chevronLeft}
             <span>Back</span>
           </button>
         )}
-        <span className="text-[13px] font-medium text-[#4d4d4d]">{title}</span>
+        <span className="text-[13px] font-medium text-slate-400">{title}</span>
       </div>
     </div>
   );
@@ -275,19 +275,19 @@ function Sidebar({
 
       {/* Sidebar */}
       <aside className={`
-        fixed top-0 left-0 z-50 h-full w-[260px] bg-[#f5f5f7]/95 backdrop-blur-xl 
-        border-r border-[#d1d1d6]
+        fixed top-0 left-0 z-50 h-full w-[260px] bg-[#0f0f14]/95 backdrop-blur-xl 
+        border-r border-white/5
         transform transition-transform duration-300 ease-out
         lg:translate-x-0 lg:static lg:z-auto
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         flex flex-col
       `}>
         {/* City Header */}
-        <div className="p-4 border-b border-[#d1d1d6]">
+        <div className="p-4 border-b border-white/5">
           <div className="relative">
             <button
               onClick={() => setShowCityDropdown(!showCityDropdown)}
-              className="w-full flex items-center gap-3 p-3 bg-white/80 hover:bg-white rounded-xl border border-[#d1d1d6] transition-colors"
+              className="w-full flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 rounded-xl border border-white/5 transition-colors"
             >
               <div 
                 className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-semibold text-lg shadow-md"
@@ -296,21 +296,21 @@ function Sidebar({
                 {currentCity?.name?.[0] || 'R'}
               </div>
               <div className="flex-1 text-left min-w-0">
-                <p className="text-[15px] font-semibold text-[#1d1d1f] truncate">
+                <p className="text-[15px] font-semibold text-white truncate">
                   {currentCity?.name || 'Select City'}
                 </p>
-                <p className="text-[12px] text-[#86868b]">
+                <p className="text-[12px] text-slate-500">
                   {currentCity?.country_code || 'No city selected'}
                 </p>
               </div>
-              <div className={`transition-transform ${showCityDropdown ? 'rotate-180' : ''}`}>
+              <div className={`transition-transform text-slate-400 ${showCityDropdown ? 'rotate-180' : ''}`}>
                 {Icons.chevronDown}
               </div>
             </button>
 
             {/* City Dropdown */}
             {showCityDropdown && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl border border-[#d1d1d6] shadow-xl z-50 py-2 max-h-64 overflow-y-auto">
+              <div className="absolute top-full left-0 right-0 mt-2 bg-[#1a1a2e] rounded-xl border border-white/10 shadow-xl z-50 py-2 max-h-64 overflow-y-auto">
                 {cities.length > 0 ? cities.map(city => (
                   <button
                     key={city.id}
@@ -319,8 +319,8 @@ function Sidebar({
                       setShowCityDropdown(false);
                       onModuleChange(null); // Go back to apps grid
                     }}
-                    className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#f5f5f7] transition-colors ${
-                      currentCity?.id === city.id ? 'bg-[#007aff]/10' : ''
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/5 transition-colors ${
+                      currentCity?.id === city.id ? 'bg-blue-500/20' : ''
                     }`}
                   >
                     <div 
@@ -329,21 +329,21 @@ function Sidebar({
                     >
                       {city.name[0]}
                     </div>
-                    <span className={`text-[14px] ${currentCity?.id === city.id ? 'font-semibold text-[#007aff]' : 'text-[#1d1d1f]'}`}>
+                    <span className={`text-[14px] ${currentCity?.id === city.id ? 'font-semibold text-blue-400' : 'text-white'}`}>
                       {city.name}
                     </span>
                     {city.is_default && (
-                      <span className="ml-auto text-[11px] text-[#86868b] bg-[#f5f5f7] px-2 py-0.5 rounded-full">
+                      <span className="ml-auto text-[11px] text-slate-500 bg-white/5 px-2 py-0.5 rounded-full">
                         Default
                       </span>
                     )}
                   </button>
                 )) : (
                   <div className="px-4 py-6 text-center">
-                    <p className="text-[13px] text-[#86868b]">No cities configured</p>
+                    <p className="text-[13px] text-slate-500">No cities configured</p>
                     <Link 
                       to="/cities" 
-                      className="text-[13px] text-[#007aff] hover:underline mt-1 inline-block"
+                      className="text-[13px] text-blue-400 hover:underline mt-1 inline-block"
                       onClick={() => setShowCityDropdown(false)}
                     >
                       Add a city →
@@ -362,7 +362,7 @@ function Sidebar({
             <>
               <button
                 onClick={() => onModuleChange(null)}
-                className="flex items-center gap-2 px-3 py-2 mb-4 text-[13px] text-[#007aff] hover:text-[#0055d4] transition-colors"
+                className="flex items-center gap-2 px-3 py-2 mb-4 text-[13px] text-blue-400 hover:text-blue-300 transition-colors"
               >
                 {Icons.chevronLeft}
                 <span>All Apps</span>
@@ -377,8 +377,8 @@ function Sidebar({
                     {activeModule.icon}
                   </div>
                   <div>
-                    <p className="text-[15px] font-semibold text-[#1d1d1f]">{activeModule.name}</p>
-                    <p className="text-[12px] text-[#86868b]">{activeModule.description}</p>
+                    <p className="text-[15px] font-semibold text-white">{activeModule.name}</p>
+                    <p className="text-[12px] text-slate-500">{activeModule.description}</p>
                   </div>
                 </div>
               </div>
@@ -393,11 +393,11 @@ function Sidebar({
                       onClick={onClose}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] transition-all ${
                         isActive
-                          ? 'bg-[#007aff] text-white font-medium'
-                          : 'text-[#1d1d1f] hover:bg-black/5'
+                          ? 'bg-blue-500 text-white font-medium'
+                          : 'text-slate-300 hover:bg-white/5'
                       }`}
                     >
-                      <span className={isActive ? 'text-white' : 'text-[#86868b]'}>
+                      <span className={isActive ? 'text-white' : 'text-slate-500'}>
                         {item.icon}
                       </span>
                       {item.label}
@@ -415,18 +415,18 @@ function Sidebar({
                 onClick={onClose}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] transition-all mb-4 ${
                   location.pathname === '/'
-                    ? 'bg-[#007aff] text-white font-medium'
-                    : 'text-[#1d1d1f] hover:bg-black/5'
+                    ? 'bg-blue-500 text-white font-medium'
+                    : 'text-slate-300 hover:bg-white/5'
                 }`}
               >
-                <span className={location.pathname === '/' ? 'text-white' : 'text-[#86868b]'}>
+                <span className={location.pathname === '/' ? 'text-white' : 'text-slate-500'}>
                   {Icons.home}
                 </span>
                 Overview
               </Link>
 
               <div className="mb-3">
-                <p className="px-3 text-[11px] font-semibold text-[#86868b] uppercase tracking-wider">
+                <p className="px-3 text-[11px] font-semibold text-slate-600 uppercase tracking-wider">
                   Apps
                 </p>
               </div>
@@ -436,7 +436,7 @@ function Sidebar({
                   <button
                     key={mod.id}
                     onClick={() => onModuleChange(mod)}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] text-[#1d1d1f] hover:bg-black/5 transition-all group"
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] text-slate-300 hover:bg-white/5 transition-all group"
                   >
                     <div 
                       className="w-8 h-8 rounded-lg flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform"
@@ -447,7 +447,7 @@ function Sidebar({
                     <div className="flex-1 text-left">
                       <p className="font-medium">{mod.name}</p>
                     </div>
-                    <svg className="w-4 h-4 text-[#c7c7cc]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <svg className="w-4 h-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
                   </button>
@@ -458,16 +458,16 @@ function Sidebar({
         </nav>
 
         {/* Bottom section */}
-        <div className="p-4 border-t border-[#d1d1d6]">
+        <div className="p-4 border-t border-white/5">
           {/* Status */}
           <div className={`flex items-center gap-2 px-3 py-2 mb-3 rounded-lg ${
-            systemStatus === 'online' ? 'bg-[#34c759]/10' : 'bg-[#ff3b30]/10'
+            systemStatus === 'online' ? 'bg-emerald-500/10' : 'bg-red-500/10'
           }`}>
             <div className={`w-2 h-2 rounded-full ${
-              systemStatus === 'online' ? 'bg-[#34c759]' : 'bg-[#ff3b30]'
+              systemStatus === 'online' ? 'bg-emerald-500' : 'bg-red-500'
             }`} />
             <span className={`text-[12px] font-medium ${
-              systemStatus === 'online' ? 'text-[#34c759]' : 'text-[#ff3b30]'
+              systemStatus === 'online' ? 'text-emerald-400' : 'text-red-400'
             }`}>
               {systemStatus === 'online' ? 'System Online' : 'System Offline'}
             </span>
@@ -475,16 +475,16 @@ function Sidebar({
 
           {/* User */}
           <div className="flex items-center gap-3 px-3 py-2">
-            <div className="w-9 h-9 bg-gradient-to-br from-[#007aff] to-[#5856d6] rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-md">
+            <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-md">
               {admin?.name?.[0] || admin?.email?.[0] || 'A'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-medium text-[#1d1d1f] truncate">{admin?.name || 'Admin'}</p>
-              <p className="text-[11px] text-[#86868b] truncate">{admin?.email}</p>
+              <p className="text-[13px] font-medium text-white truncate">{admin?.name || 'Admin'}</p>
+              <p className="text-[11px] text-slate-500 truncate">{admin?.email}</p>
             </div>
             <button 
               onClick={handleLogout}
-              className="p-2 text-[#86868b] hover:text-[#ff3b30] transition-colors rounded-lg hover:bg-[#ff3b30]/10"
+              className="p-2 text-slate-500 hover:text-red-400 transition-colors rounded-lg hover:bg-red-500/10"
               title="Sign out"
             >
               {Icons.logout}
@@ -510,7 +510,7 @@ export function Card({
   padding?: boolean;
 }) {
   return (
-    <div className={`bg-white rounded-xl border border-[#d1d1d6] shadow-sm ${padding ? 'p-6' : ''} ${className}`}>
+    <div className={`bg-gradient-to-br from-[#1a1a2e] to-[#16162a] rounded-2xl border border-white/5 ${padding ? 'p-6' : ''} ${className}`}>
       {children}
     </div>
   );
@@ -528,8 +528,8 @@ export function CardHeader({
   return (
     <div className="flex items-start justify-between mb-6">
       <div>
-        <h2 className="text-[17px] font-semibold text-[#1d1d1f]">{title}</h2>
-        {description && <p className="text-[13px] text-[#86868b] mt-0.5">{description}</p>}
+        <h2 className="text-[17px] font-semibold text-white">{title}</h2>
+        {description && <p className="text-[13px] text-slate-500 mt-0.5">{description}</p>}
       </div>
       {action}
     </div>
@@ -569,7 +569,7 @@ export default function LayoutV2({ children }: { children: ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] flex">
+    <div className="min-h-screen bg-[#0a0a0f] flex">
       <Sidebar 
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)}
@@ -586,17 +586,17 @@ export default function LayoutV2({ children }: { children: ReactNode }) {
         />
         
         {/* Mobile menu button */}
-        <div className="lg:hidden flex items-center h-12 px-4 bg-white border-b border-[#d1d1d6]">
+        <div className="lg:hidden flex items-center h-12 px-4 bg-[#0f0f14] border-b border-white/5">
           <button 
             onClick={() => setSidebarOpen(true)}
-            className="p-2 -ml-2 text-[#86868b] hover:text-[#1d1d1f] rounded-lg hover:bg-[#f5f5f7] transition-colors"
+            className="p-2 -ml-2 text-slate-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors"
           >
             {Icons.menu}
           </button>
         </div>
         
         {/* Main Content */}
-        <main className="flex-1 overflow-auto p-6">
+        <main className="flex-1 overflow-auto p-6 bg-[#0a0a0f]">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>
