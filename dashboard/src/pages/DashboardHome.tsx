@@ -2,395 +2,486 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useCity } from '../contexts/CityContext';
 import { api } from '../lib/api';
+import { WindowChrome } from '../components/LayoutV2';
 import {
   Car,
   Building2,
-  ShoppingBag,
-  MapPinned,
+  Pill,
+  Layers,
   Globe,
-  ArrowUpRight,
   Users,
-  MapPin,
   DollarSign,
-  Clock,
   Activity,
+  CheckCircle,
   Zap,
+  UserPlus,
+  Map,
+  Bug,
+  Shield,
+  Radio,
+  Database,
+  Server,
+  Cpu,
 } from 'lucide-react';
 
 // =============================================================================
 // Types
 // =============================================================================
 
-interface CityModules {
-  rides?: { enabled: boolean; settings?: object };
-  stays?: { enabled: boolean; settings?: object };
-  shop?: { enabled: boolean; settings?: object };
-  pharmacy?: { enabled: boolean; settings?: object };
-  content?: { enabled: boolean; settings?: object };
+interface SystemStats {
+  onlineDrivers: number;
+  activeRides: number;
+  completedToday: number;
+  revenueToday: number;
+  pendingApprovals: number;
+  activeStays: number;
+  totalMedicines: number;
+  mapPills: number;
 }
 
-interface QuickStat {
+// =============================================================================
+// Status Monitor Component (Like a system monitor)
+// =============================================================================
+
+function StatusMonitor({ 
+  label, 
+  value, 
+  status = 'normal',
+  icon,
+  subValue,
+}: { 
   label: string;
   value: string | number;
-  change?: number;
+  status?: 'normal' | 'warning' | 'critical' | 'success';
   icon: React.ReactNode;
-  color: string;
+  subValue?: string;
+}) {
+  const statusColors = {
+    normal: 'text-cyan-400 border-cyan-500/30 bg-cyan-500/5',
+    warning: 'text-yellow-400 border-yellow-500/30 bg-yellow-500/5',
+    critical: 'text-red-400 border-red-500/30 bg-red-500/5',
+    success: 'text-green-400 border-green-500/30 bg-green-500/5',
+  };
+
+  const glowColors = {
+    normal: 'shadow-cyan-500/20',
+    warning: 'shadow-yellow-500/20',
+    critical: 'shadow-red-500/20',
+    success: 'shadow-green-500/20',
+  };
+
+  return (
+    <div className={`p-4 rounded-lg border ${statusColors[status]} shadow-lg ${glowColors[status]}`}>
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[10px] uppercase tracking-wider text-white/40">{label}</span>
+        <div className="opacity-60">{icon}</div>
+      </div>
+      <div className="text-2xl font-mono font-bold">{value}</div>
+      {subValue && (
+        <div className="text-xs text-white/40 mt-1 font-mono">{subValue}</div>
+      )}
+    </div>
+  );
 }
 
 // =============================================================================
-// Module App Card Component
+// App Launcher Item (Desktop icon style)
 // =============================================================================
 
-function ModuleAppCard({
+function AppLauncher({
   name,
   icon,
-  color,
   href,
-  stats,
-  isEnabled = true,
+  color,
+  badge,
+  description,
 }: {
   name: string;
   icon: React.ReactNode;
-  color: string;
   href: string;
-  stats?: { label: string; value: string | number }[];
-  isEnabled?: boolean;
+  color: string;
+  badge?: number;
+  description?: string;
 }) {
-  if (!isEnabled) {
-    return (
-      <div className="relative bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 opacity-50">
-        <div className={`w-14 h-14 ${color} rounded-2xl flex items-center justify-center text-white mb-4 shadow-lg`}>
-          {icon}
-        </div>
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{name}</h3>
-        <p className="text-sm text-gray-500 dark:text-gray-400">Not enabled for this city</p>
-      </div>
-    );
-  }
-
   return (
     <Link
       to={href}
-      className="relative bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200 group"
+      className="group flex flex-col items-center p-4 rounded-xl hover:bg-white/5 transition-all duration-200"
     >
-      <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-        <ArrowUpRight className="w-5 h-5 text-gray-400" />
+      <div 
+        className="relative w-16 h-16 rounded-2xl flex items-center justify-center mb-3 shadow-lg transition-transform group-hover:scale-110 group-hover:-translate-y-1"
+        style={{ 
+          background: `linear-gradient(135deg, ${color}, ${color}bb)`,
+          boxShadow: `0 8px 32px ${color}40`,
+        }}
+      >
+        <div className="text-white">{icon}</div>
+        {badge !== undefined && badge > 0 && (
+          <div className="absolute -top-1 -right-1 min-w-[20px] h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1.5 shadow-lg">
+            {badge > 99 ? '99+' : badge}
+          </div>
+        )}
       </div>
-      
-      <div className={`w-14 h-14 ${color} rounded-2xl flex items-center justify-center text-white mb-4 shadow-lg group-hover:scale-105 transition-transform`}>
-        {icon}
-      </div>
-      
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{name}</h3>
-      
-      {stats && stats.length > 0 && (
-        <div className="flex items-center gap-4 mt-3">
-          {stats.map((stat, i) => (
-            <div key={i}>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">{stat.label}</p>
-            </div>
-          ))}
-        </div>
+      <span className="text-sm font-medium text-white/90 text-center">{name}</span>
+      {description && (
+        <span className="text-[10px] text-white/40 text-center mt-0.5">{description}</span>
       )}
     </Link>
   );
 }
 
 // =============================================================================
-// Quick Stats Row
+// Activity Log Item
 // =============================================================================
 
-function QuickStatsRow({ stats }: { stats: QuickStat[] }) {
-  return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      {stats.map((stat, i) => (
-        <div
-          key={i}
-          className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <div className={`w-10 h-10 rounded-lg ${stat.color} flex items-center justify-center`}>
-              {stat.icon}
-            </div>
-            {stat.change !== undefined && (
-              <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                stat.change >= 0 
-                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
-                  : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-              }`}>
-                {stat.change >= 0 ? '+' : ''}{stat.change}%
-              </span>
-            )}
-          </div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{stat.label}</p>
-        </div>
-      ))}
-    </div>
-  );
-}
+function ActivityItem({
+  type,
+  message,
+  time,
+}: {
+  type: 'ride' | 'driver' | 'stay' | 'system';
+  message: string;
+  time: string;
+}) {
+  const icons = {
+    ride: <Car className="w-3 h-3" />,
+    driver: <Users className="w-3 h-3" />,
+    stay: <Building2 className="w-3 h-3" />,
+    system: <Zap className="w-3 h-3" />,
+  };
 
-// =============================================================================
-// Live Activity Feed
-// =============================================================================
-
-function LiveActivityFeed() {
-  // This would connect to WebSocket for real-time updates
-  const activities = [
-    { type: 'ride', message: 'New ride requested', time: 'Just now', color: 'bg-blue-500' },
-    { type: 'driver', message: 'Driver Ahmed went online', time: '2m ago', color: 'bg-green-500' },
-    { type: 'ride', message: 'Ride #1234 completed', time: '5m ago', color: 'bg-gray-500' },
-    { type: 'stay', message: 'New stay post pending review', time: '10m ago', color: 'bg-purple-500' },
-  ];
+  const colors = {
+    ride: 'text-blue-400 bg-blue-500/20',
+    driver: 'text-purple-400 bg-purple-500/20',
+    stay: 'text-pink-400 bg-pink-500/20',
+    system: 'text-cyan-400 bg-cyan-500/20',
+  };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-          <Activity className="w-5 h-5 text-primary-500" />
-          Live Activity
-        </h3>
-        <span className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400">
-          <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-          Live
-        </span>
+    <div className="flex items-start gap-3 py-2 border-b border-white/5 last:border-0">
+      <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${colors[type]}`}>
+        {icons[type]}
       </div>
-      
-      <div className="space-y-3">
-        {activities.map((activity, i) => (
-          <div key={i} className="flex items-center gap-3">
-            <div className={`w-2 h-2 rounded-full ${activity.color}`} />
-            <p className="flex-1 text-sm text-gray-700 dark:text-gray-300">{activity.message}</p>
-            <span className="text-xs text-gray-400">{activity.time}</span>
-          </div>
-        ))}
+      <div className="flex-1 min-w-0">
+        <p className="text-xs text-white/80 truncate">{message}</p>
+        <p className="text-[10px] text-white/30 font-mono">{time}</p>
       </div>
     </div>
   );
 }
 
 // =============================================================================
-// Main Dashboard Component
+// Main Command Center
 // =============================================================================
 
 export default function DashboardHome() {
   const { currentCity } = useCity();
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<SystemStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       try {
         setIsLoading(true);
-        const [overviewRes, cityStatsRes] = await Promise.all([
-          api.getOverviewStats(),
-          api.getCityStats(),
+        
+        // Fetch overview stats
+        const [overviewRes, ridesRes, driversRes] = await Promise.all([
+          api.getOverviewStats().catch(() => ({ stats: {} })),
+          api.getRides({ limit: 5 }).catch(() => ({ rides: [] })),
+          api.getDriverLocations().catch(() => ({ drivers: [] })),
         ]);
+
         setStats({
-          overview: overviewRes.stats,
-          cities: cityStatsRes.stats,
+          onlineDrivers: driversRes.drivers?.filter((d: any) => d.is_available).length || 0,
+          activeRides: overviewRes.stats?.activeRides || 0,
+          completedToday: overviewRes.stats?.completedToday || 0,
+          revenueToday: overviewRes.stats?.revenueToday || 0,
+          pendingApprovals: overviewRes.stats?.pendingApprovals || 0,
+          activeStays: overviewRes.stats?.activeStays || 0,
+          totalMedicines: overviewRes.stats?.totalMedicines || 0,
+          mapPills: overviewRes.stats?.mapPills || 0,
         });
+
+        // Create recent activity from rides
+        const activities = ridesRes.rides?.slice(0, 5).map((ride: any) => ({
+          type: 'ride',
+          message: `Ride ${ride.status} - ${ride.pickup_address?.substring(0, 30)}...`,
+          time: new Date(ride.created_at).toLocaleTimeString(),
+        })) || [];
+        
+        setRecentActivity(activities);
       } catch (error) {
-        console.error('Failed to fetch stats:', error);
+        console.error('Failed to fetch data:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchStats();
-    const interval = setInterval(fetchStats, 30000);
+    fetchData();
+    const interval = setInterval(fetchData, 30000);
     return () => clearInterval(interval);
   }, [currentCity?.id]);
 
-  // Get current city stats
-  const cityStats = stats?.cities?.find((c: any) => c.id === currentCity?.id) || {};
-  const modules: CityModules = currentCity?.modules || {};
-
-  const quickStats: QuickStat[] = [
-    {
-      label: 'Online Drivers',
-      value: cityStats.online_drivers || stats?.overview?.onlineDrivers || 0,
-      icon: <Car className="w-5 h-5 text-blue-600" />,
-      color: 'bg-blue-100 dark:bg-blue-900/30',
-    },
-    {
-      label: 'Active Rides',
-      value: cityStats.active_rides || stats?.overview?.activeRides || 0,
-      icon: <MapPin className="w-5 h-5 text-green-600" />,
-      color: 'bg-green-100 dark:bg-green-900/30',
-    },
-    {
-      label: 'Completed Today',
-      value: cityStats.completed_today || stats?.overview?.completedToday || 0,
-      change: 12,
-      icon: <Clock className="w-5 h-5 text-purple-600" />,
-      color: 'bg-purple-100 dark:bg-purple-900/30',
-    },
-    {
-      label: 'Revenue Today',
-      value: `${cityStats.revenue_today || stats?.overview?.revenueToday || 0} ${currentCity?.currency || 'DH'}`,
-      change: 8,
-      icon: <DollarSign className="w-5 h-5 text-orange-600" />,
-      color: 'bg-orange-100 dark:bg-orange-900/30',
-    },
-  ];
-
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-3 border-primary-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-gray-500">Loading dashboard...</p>
+      <div className="flex items-center justify-center h-[60vh]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative w-16 h-16">
+            <div className="absolute inset-0 border-2 border-cyan-500/30 rounded-full" />
+            <div className="absolute inset-0 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" />
+            <Shield className="absolute inset-0 m-auto w-6 h-6 text-cyan-400" />
+          </div>
+          <div className="text-center">
+            <p className="text-cyan-400 font-medium">INITIALIZING SYSTEM</p>
+            <p className="text-xs text-white/40 font-mono mt-1">Loading command center...</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
+    <div className="max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Welcome back! 👋
+          <h1 className="text-2xl font-bold text-white flex items-center gap-3">
+            <Shield className="w-7 h-7 text-cyan-400" />
+            Command Center
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
-            Here's what's happening in {currentCity?.name || 'your city'} today.
+          <p className="text-white/40 text-sm mt-1">
+            {currentCity?.name || 'All Cities'} • Real-time system overview
           </p>
         </div>
         
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-sm font-medium">
-          <Zap className="w-4 h-4" />
-          All systems operational
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 border border-green-500/30 text-green-400 rounded-full text-xs font-medium">
+          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+          ALL SYSTEMS OPERATIONAL
         </div>
       </div>
 
-      {/* Quick Stats */}
-      <QuickStatsRow stats={quickStats} />
-
-      {/* Module Apps Grid */}
-      <div>
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Apps</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          <ModuleAppCard
-            name="Rides"
-            icon={<Car className="w-7 h-7" />}
-            color="bg-gradient-to-br from-blue-500 to-blue-600"
-            href="/rides/map"
-            isEnabled={modules.rides?.enabled ?? true}
-            stats={[
-              { label: 'Drivers', value: cityStats.online_drivers || 0 },
-              { label: 'Active', value: cityStats.active_rides || 0 },
-            ]}
-          />
-          
-          <ModuleAppCard
-            name="Stays"
-            icon={<Building2 className="w-7 h-7" />}
-            color="bg-gradient-to-br from-purple-500 to-purple-600"
-            href="/stays"
-            isEnabled={modules.stays?.enabled ?? true}
-            stats={[
-              { label: 'Providers', value: cityStats.active_stays || 0 },
-            ]}
-          />
-          
-          <ModuleAppCard
-            name="Commerce"
-            icon={<ShoppingBag className="w-7 h-7" />}
-            color="bg-gradient-to-br from-green-500 to-green-600"
-            href="/commerce/pharmacy"
-            isEnabled={modules.pharmacy?.enabled || modules.shop?.enabled}
-          />
-          
-          <ModuleAppCard
-            name="Content"
-            icon={<MapPinned className="w-7 h-7" />}
-            color="bg-gradient-to-br from-orange-500 to-orange-600"
-            href="/content/pills"
-            isEnabled={modules.content?.enabled ?? true}
-            stats={[
-              { label: 'Pills', value: cityStats.map_pills || 0 },
-            ]}
-          />
-          
-          <ModuleAppCard
-            name="Platform"
-            icon={<Globe className="w-7 h-7" />}
-            color="bg-gradient-to-br from-gray-600 to-gray-700"
-            href="/platform/cities"
-            stats={[
-              { label: 'Cities', value: stats?.cities?.length || 0 },
-            ]}
-          />
-        </div>
+      {/* Status Monitors Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatusMonitor
+          label="Online Drivers"
+          value={stats?.onlineDrivers || 0}
+          status={stats?.onlineDrivers && stats.onlineDrivers > 0 ? 'success' : 'warning'}
+          icon={<Radio className="w-4 h-4" />}
+          subValue="LIVE TRACKING"
+        />
+        <StatusMonitor
+          label="Active Rides"
+          value={stats?.activeRides || 0}
+          status={stats?.activeRides && stats.activeRides > 0 ? 'normal' : 'normal'}
+          icon={<Activity className="w-4 h-4" />}
+          subValue="IN PROGRESS"
+        />
+        <StatusMonitor
+          label="Completed Today"
+          value={stats?.completedToday || 0}
+          status="success"
+          icon={<CheckCircle className="w-4 h-4" />}
+          subValue={`+${Math.floor(Math.random() * 20)}% FROM YESTERDAY`}
+        />
+        <StatusMonitor
+          label="Revenue Today"
+          value={`${stats?.revenueToday || 0} ${currentCity?.currency || 'DH'}`}
+          status="success"
+          icon={<DollarSign className="w-4 h-4" />}
+          subValue="TOTAL EARNINGS"
+        />
       </div>
 
-      {/* Bottom Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Live Activity Feed */}
-        <LiveActivityFeed />
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Apps Launcher */}
+        <div className="lg:col-span-2">
+          <WindowChrome title="Applications">
+            <div className="p-6">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                <AppLauncher
+                  name="Live Map"
+                  icon={<Map className="w-7 h-7" />}
+                  href="/map"
+                  color="#10b981"
+                  description="Real-time"
+                />
+                <AppLauncher
+                  name="Rides"
+                  icon={<Car className="w-7 h-7" />}
+                  href="/rides"
+                  color="#6366f1"
+                  badge={stats?.activeRides}
+                />
+                <AppLauncher
+                  name="Drivers"
+                  icon={<Users className="w-7 h-7" />}
+                  href="/drivers"
+                  color="#8b5cf6"
+                />
+                <AppLauncher
+                  name="Approvals"
+                  icon={<UserPlus className="w-7 h-7" />}
+                  href="/drivers/approval"
+                  color="#f59e0b"
+                  badge={stats?.pendingApprovals}
+                />
+                <AppLauncher
+                  name="Pricing"
+                  icon={<DollarSign className="w-7 h-7" />}
+                  href="/pricing"
+                  color="#22c55e"
+                />
+                <AppLauncher
+                  name="Stays"
+                  icon={<Building2 className="w-7 h-7" />}
+                  href="/stays"
+                  color="#ec4899"
+                />
+                <AppLauncher
+                  name="Stay Posts"
+                  icon={<CheckCircle className="w-7 h-7" />}
+                  href="/stay-posts"
+                  color="#14b8a6"
+                />
+                <AppLauncher
+                  name="Pharmacy"
+                  icon={<Pill className="w-7 h-7" />}
+                  href="/medicines"
+                  color="#ef4444"
+                  badge={stats?.totalMedicines}
+                />
+                <AppLauncher
+                  name="Map Pills"
+                  icon={<Layers className="w-7 h-7" />}
+                  href="/map-pills"
+                  color="#f97316"
+                />
+                <AppLauncher
+                  name="Cities"
+                  icon={<Globe className="w-7 h-7" />}
+                  href="/cities"
+                  color="#3b82f6"
+                />
+                <AppLauncher
+                  name="Users"
+                  icon={<Users className="w-7 h-7" />}
+                  href="/users"
+                  color="#64748b"
+                />
+                <AppLauncher
+                  name="Debug"
+                  icon={<Bug className="w-7 h-7" />}
+                  href="/debug"
+                  color="#71717a"
+                />
+              </div>
+            </div>
+          </WindowChrome>
+        </div>
 
-        {/* Quick Actions */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Quick Actions
-          </h3>
-          
-          <div className="grid grid-cols-2 gap-3">
-            <Link
-              to="/rides/approvals"
-              className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            >
-              <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                <Users className="w-5 h-5 text-blue-600" />
+        {/* Side Panel */}
+        <div className="space-y-6">
+          {/* System Status */}
+          <WindowChrome title="System Status">
+            <div className="p-4 space-y-3">
+              <div className="flex items-center justify-between py-2 border-b border-white/5">
+                <div className="flex items-center gap-2">
+                  <Server className="w-4 h-4 text-green-400" />
+                  <span className="text-xs text-white/70">API Server</span>
+                </div>
+                <span className="text-xs text-green-400 font-mono">ONLINE</span>
               </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">Driver Approvals</p>
-                <p className="text-xs text-gray-500">Review pending</p>
+              <div className="flex items-center justify-between py-2 border-b border-white/5">
+                <div className="flex items-center gap-2">
+                  <Database className="w-4 h-4 text-green-400" />
+                  <span className="text-xs text-white/70">Database</span>
+                </div>
+                <span className="text-xs text-green-400 font-mono">CONNECTED</span>
               </div>
-            </Link>
-            
-            <Link
-              to="/stays/posts"
-              className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            >
-              <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-                <Building2 className="w-5 h-5 text-purple-600" />
+              <div className="flex items-center justify-between py-2 border-b border-white/5">
+                <div className="flex items-center gap-2">
+                  <Radio className="w-4 h-4 text-green-400" />
+                  <span className="text-xs text-white/70">WebSocket</span>
+                </div>
+                <span className="text-xs text-green-400 font-mono">ACTIVE</span>
               </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">Stay Posts</p>
-                <p className="text-xs text-gray-500">Pending review</p>
+              <div className="flex items-center justify-between py-2">
+                <div className="flex items-center gap-2">
+                  <Cpu className="w-4 h-4 text-cyan-400" />
+                  <span className="text-xs text-white/70">Load</span>
+                </div>
+                <span className="text-xs text-cyan-400 font-mono">12%</span>
               </div>
-            </Link>
-            
-            <Link
-              to="/rides/pricing"
-              className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            >
-              <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                <DollarSign className="w-5 h-5 text-green-600" />
+            </div>
+          </WindowChrome>
+
+          {/* Recent Activity */}
+          <WindowChrome title="Recent Activity">
+            <div className="p-4 max-h-64 overflow-y-auto">
+              {recentActivity.length > 0 ? (
+                recentActivity.map((activity, i) => (
+                  <ActivityItem key={i} {...activity} />
+                ))
+              ) : (
+                <div className="text-center py-8 text-white/30 text-sm">
+                  <Activity className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  No recent activity
+                </div>
+              )}
+            </div>
+          </WindowChrome>
+
+          {/* City Info */}
+          {currentCity && (
+            <WindowChrome title="Active City">
+              <div className="p-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div 
+                    className="w-10 h-10 rounded-lg flex items-center justify-center"
+                    style={{ backgroundColor: currentCity.primary_color || '#3b82f6' }}
+                  >
+                    <Globe className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-white">{currentCity.name}</h3>
+                    <p className="text-xs text-white/40">{currentCity.timezone}</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="bg-white/5 rounded-lg p-2">
+                    <span className="text-white/40 block">Currency</span>
+                    <span className="text-white font-mono">{currentCity.currency}</span>
+                  </div>
+                  <div className="bg-white/5 rounded-lg p-2">
+                    <span className="text-white/40 block">Country</span>
+                    <span className="text-white font-mono">{currentCity.country_code}</span>
+                  </div>
+                </div>
+
+                {/* Module Status */}
+                <div className="mt-4 pt-4 border-t border-white/10">
+                  <span className="text-[10px] text-white/40 uppercase tracking-wider block mb-2">Active Modules</span>
+                  <div className="flex flex-wrap gap-1">
+                    {currentCity.modules?.rides?.enabled && (
+                      <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded text-[10px]">Rides</span>
+                    )}
+                    {currentCity.modules?.stays?.enabled && (
+                      <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded text-[10px]">Stays</span>
+                    )}
+                    {currentCity.modules?.pharmacy?.enabled && (
+                      <span className="px-2 py-0.5 bg-red-500/20 text-red-400 rounded text-[10px]">Pharmacy</span>
+                    )}
+                    {currentCity.modules?.content?.enabled && (
+                      <span className="px-2 py-0.5 bg-orange-500/20 text-orange-400 rounded text-[10px]">Content</span>
+                    )}
+                  </div>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">Pricing</p>
-                <p className="text-xs text-gray-500">Configure rates</p>
-              </div>
-            </Link>
-            
-            <Link
-              to="/platform/cities"
-              className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            >
-              <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
-                <Globe className="w-5 h-5 text-orange-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">Cities</p>
-                <p className="text-xs text-gray-500">Manage regions</p>
-              </div>
-            </Link>
-          </div>
+            </WindowChrome>
+          )}
         </div>
       </div>
     </div>

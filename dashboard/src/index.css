@@ -2,29 +2,125 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Force dark mode for the OS-style dashboard */
+:root {
+  color-scheme: dark;
+}
+
 body {
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: #0a0a0f;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar - dark theme */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a1a1a1;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Window content styling - override light backgrounds */
+.window-content {
+  background: rgba(17, 24, 39, 0.95);
+}
+
+/* Force dark mode on existing pages */
+.bg-gray-50, .bg-white {
+  background: rgba(17, 24, 39, 0.8) !important;
+}
+
+.text-gray-900, .text-gray-800, .text-gray-700 {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.text-gray-600, .text-gray-500 {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.text-gray-400 {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.border-gray-200, .border-gray-300 {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.bg-gray-100, .bg-gray-200 {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Table styling for dark theme */
+table {
+  background: rgba(17, 24, 39, 0.6);
+}
+
+th {
+  background: rgba(0, 0, 0, 0.3) !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+td {
+  border-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+tr:hover td {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+/* Form inputs dark theme */
+input, select, textarea {
+  background: rgba(0, 0, 0, 0.3) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: white !important;
+}
+
+input::placeholder, textarea::placeholder {
+  color: rgba(255, 255, 255, 0.3) !important;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: rgba(6, 182, 212, 0.5) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1) !important;
+}
+
+/* Modal/Dialog dark theme */
+.fixed.inset-0.bg-black\\/50 {
+  background: rgba(0, 0, 0, 0.8) !important;
+}
+
+/* Button styling */
+.bg-primary-600, .bg-blue-600 {
+  background: linear-gradient(135deg, #0ea5e9, #0284c7) !important;
+}
+
+.bg-primary-600:hover, .bg-blue-600:hover {
+  background: linear-gradient(135deg, #0284c7, #0369a1) !important;
+}
+
+/* Glow effects */
+.glow-cyan {
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+}
+
+.glow-green {
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
 }
 
 /* Animations */
@@ -38,10 +134,19 @@ body {
   to { transform: translateY(0); opacity: 1; }
 }
 
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(6, 182, 212, 0.2); }
+  50% { box-shadow: 0 0 30px rgba(6, 182, 212, 0.4); }
+}
+
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-out;
 }
 
 .animate-slideIn {
   animation: slideIn 0.3s ease-out;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s infinite;
 }
