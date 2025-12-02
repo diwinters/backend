@@ -2,21 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ============================================
-   RACEEF DASHBOARD - Premium Design System
-   Inspired by Linear, Stripe, and Apple
-   ============================================ */
+/* =============================================================================
+   RACEEF DASHBOARD - macOS Design System
+   Inspired by Apple's Human Interface Guidelines
+   ============================================================================= */
 
-/* Base */
+/* Typography - SF Pro inspired */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 :root {
-  --color-primary: #3b82f6;
-  --color-primary-dark: #1d4ed8;
-  --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-  --gradient-dark: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  /* macOS System Colors */
+  --color-blue: #007aff;
+  --color-green: #34c759;
+  --color-orange: #ff9500;
+  --color-red: #ff3b30;
+  --color-purple: #af52de;
+  --color-indigo: #5856d6;
+  --color-pink: #ff2d55;
+  --color-teal: #5ac8fa;
+  --color-yellow: #ffcc00;
+  
+  /* Semantic Colors */
+  --color-label: #1d1d1f;
+  --color-secondary-label: #86868b;
+  --color-tertiary-label: #c7c7cc;
+  --color-separator: #d1d1d6;
+  --color-background: #f5f5f7;
+  --color-secondary-background: #ffffff;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.16);
 }
 
 * {
@@ -29,15 +47,17 @@ html {
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #f8fafc;
-  color: #0f172a;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', sans-serif;
+  background: var(--color-background);
+  color: var(--color-label);
+  font-size: 15px;
+  line-height: 1.5;
 }
 
-/* Scrollbar */
+/* Scrollbar - macOS style */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -45,126 +65,108 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: rgba(0, 0, 0, 0.3);
 }
 
-/* Premium Card Styles */
+/* Selection */
+::selection {
+  background: rgba(0, 122, 255, 0.2);
+  color: inherit;
+}
+
+/* Focus ring */
+*:focus {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.3);
+  border-radius: inherit;
+}
+
+/* =============================================================================
+   Components
+   ============================================================================= */
+
 @layer components {
-  .card {
-    @apply bg-white rounded-xl border border-slate-200/60 shadow-sm;
+  /* Card */
+  .macos-card {
+    @apply bg-white rounded-2xl border border-[#d1d1d6] shadow-sm;
   }
 
-  .card-hover {
-    @apply card transition-all duration-200 hover:shadow-md hover:border-slate-300/60 hover:-translate-y-0.5;
+  /* Button - Primary */
+  .macos-btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 
+      bg-[#007aff] hover:bg-[#0066d6] active:bg-[#0055b3]
+      text-white font-medium rounded-xl
+      shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30
+      transition-all duration-200;
   }
 
-  .glass {
-    @apply bg-white/80 backdrop-blur-xl border border-white/20;
+  /* Button - Secondary */
+  .macos-btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5
+      bg-[#f5f5f7] hover:bg-[#e8e8ea] active:bg-[#d8d8da]
+      text-[#1d1d1f] font-medium rounded-xl border border-[#d1d1d6]
+      transition-all duration-200;
   }
 
-  /* Premium Gradients */
-  .gradient-primary {
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  /* Button - Destructive */
+  .macos-btn-danger {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5
+      bg-[#ff3b30] hover:bg-[#e0352b] active:bg-[#c02f26]
+      text-white font-medium rounded-xl
+      shadow-lg shadow-red-500/25
+      transition-all duration-200;
   }
 
-  .gradient-success {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  /* Input */
+  .macos-input {
+    @apply w-full h-11 px-4 bg-white border border-[#d1d1d6] rounded-xl
+      text-[15px] text-[#1d1d1f] placeholder-[#86868b]
+      focus:ring-4 focus:ring-[#007aff]/20 focus:border-[#007aff]
+      transition-all duration-200;
   }
 
-  .gradient-warning {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  /* Select */
+  .macos-select {
+    @apply w-full h-11 px-4 bg-white border border-[#d1d1d6] rounded-xl
+      text-[15px] text-[#1d1d1f]
+      focus:ring-4 focus:ring-[#007aff]/20 focus:border-[#007aff]
+      transition-all duration-200 cursor-pointer appearance-none
+      bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2386868b%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22%2F%3E%3C%2Fsvg%3E')]
+      bg-[length:20px] bg-[right_12px_center] bg-no-repeat pr-10;
   }
 
-  .gradient-danger {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  /* Badge */
+  .macos-badge {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-medium;
   }
 
-  .gradient-purple {
-    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  .macos-badge-blue {
+    @apply macos-badge bg-[#007aff]/10 text-[#007aff];
   }
 
-  .gradient-pink {
-    background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+  .macos-badge-green {
+    @apply macos-badge bg-[#34c759]/10 text-[#34c759];
   }
 
-  .gradient-dark {
-    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+  .macos-badge-orange {
+    @apply macos-badge bg-[#ff9500]/10 text-[#ff9500];
   }
 
-  /* Subtle backgrounds */
-  .bg-dots {
-    background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
-    background-size: 20px 20px;
+  .macos-badge-red {
+    @apply macos-badge bg-[#ff3b30]/10 text-[#ff3b30];
   }
 
-  .bg-grid {
-    background-image: 
-      linear-gradient(to right, #f1f5f9 1px, transparent 1px),
-      linear-gradient(to bottom, #f1f5f9 1px, transparent 1px);
-    background-size: 24px 24px;
-  }
-
-  /* Button styles */
-  .btn {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm transition-all duration-200;
-  }
-
-  .btn-primary {
-    @apply btn bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 shadow-sm hover:shadow-md;
-  }
-
-  .btn-secondary {
-    @apply btn bg-slate-100 text-slate-700 hover:bg-slate-200 active:bg-slate-300;
-  }
-
-  .btn-ghost {
-    @apply btn bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900;
-  }
-
-  .btn-danger {
-    @apply btn bg-red-600 text-white hover:bg-red-700 active:bg-red-800;
-  }
-
-  /* Input styles */
-  .input {
-    @apply w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm placeholder-slate-400;
-    @apply focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500;
-    @apply transition-all duration-200;
-  }
-
-  .input-dark {
-    @apply input bg-slate-800/50 border-slate-700 text-white placeholder-slate-500;
-    @apply focus:ring-blue-500/30 focus:border-blue-500;
-  }
-
-  /* Badge styles */
-  .badge {
-    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium;
-  }
-
-  .badge-blue {
-    @apply badge bg-blue-100 text-blue-700;
-  }
-
-  .badge-green {
-    @apply badge bg-emerald-100 text-emerald-700;
-  }
-
-  .badge-yellow {
-    @apply badge bg-amber-100 text-amber-700;
-  }
-
-  .badge-red {
-    @apply badge bg-red-100 text-red-700;
-  }
-
-  .badge-gray {
-    @apply badge bg-slate-100 text-slate-600;
+  .macos-badge-gray {
+    @apply macos-badge bg-[#86868b]/10 text-[#86868b];
   }
 
   /* Status dot */
@@ -173,83 +175,62 @@ body {
   }
 
   .status-online {
-    @apply status-dot bg-emerald-500;
-    animation: pulse-green 2s infinite;
+    @apply status-dot bg-[#34c759];
+    animation: pulse-green 2s ease-in-out infinite;
   }
 
   .status-offline {
-    @apply status-dot bg-slate-400;
+    @apply status-dot bg-[#86868b];
   }
 
   .status-busy {
-    @apply status-dot bg-amber-500;
-    animation: pulse-amber 2s infinite;
+    @apply status-dot bg-[#ff9500];
+    animation: pulse-orange 2s ease-in-out infinite;
   }
 }
 
-/* Animations */
+/* =============================================================================
+   Animations
+   ============================================================================= */
+
 @keyframes pulse-green {
   0%, 100% {
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+    box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.4);
   }
   50% {
-    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0);
+    box-shadow: 0 0 0 6px rgba(52, 199, 89, 0);
   }
 }
 
-@keyframes pulse-amber {
+@keyframes pulse-orange {
   0%, 100% {
-    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
+    box-shadow: 0 0 0 0 rgba(255, 149, 0, 0.4);
   }
   50% {
-    box-shadow: 0 0 0 4px rgba(245, 158, 11, 0);
+    box-shadow: 0 0 0 6px rgba(255, 149, 0, 0);
   }
 }
 
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes slide-up {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-@keyframes slide-in {
-  from {
-    opacity: 0;
-    transform: translateX(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
   }
 }
 
 @keyframes scale-in {
   from {
     opacity: 0;
-    transform: scale(0.95);
+    transform: scale(0.96);
   }
   to {
     opacity: 1;
@@ -257,139 +238,126 @@ body {
   }
 }
 
-.animate-slide-up {
-  animation: slide-up 0.3s ease-out forwards;
-}
-
-.animate-slide-in {
-  animation: slide-in 0.3s ease-out forwards;
+@keyframes bounce-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .animate-fade-in {
-  animation: fade-in 0.3s ease-out forwards;
-}
-
-.animate-scale-in {
-  animation: scale-in 0.2s ease-out forwards;
-}
-
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-/* Stagger children */
-.stagger-children > * {
-  opacity: 0;
-  animation: slide-up 0.4s ease-out forwards;
-}
-
-.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
-.stagger-children > *:nth-child(2) { animation-delay: 50ms; }
-.stagger-children > *:nth-child(3) { animation-delay: 100ms; }
-.stagger-children > *:nth-child(4) { animation-delay: 150ms; }
-.stagger-children > *:nth-child(5) { animation-delay: 200ms; }
-.stagger-children > *:nth-child(6) { animation-delay: 250ms; }
-.stagger-children > *:nth-child(7) { animation-delay: 300ms; }
-.stagger-children > *:nth-child(8) { animation-delay: 350ms; }
-
-/* Table styles */
-.table-container {
-  @apply overflow-hidden rounded-xl border border-slate-200 bg-white;
-}
-
-.table-container table {
-  @apply w-full;
-}
-
-.table-container th {
-  @apply px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider bg-slate-50 border-b border-slate-200;
-}
-
-.table-container td {
-  @apply px-4 py-3 text-sm text-slate-700 border-b border-slate-100;
-}
-
-.table-container tr:last-child td {
-  @apply border-b-0;
-}
-
-.table-container tbody tr {
-  @apply transition-colors hover:bg-slate-50/50;
-}
-
-/* Dialog/Modal Overlay */
-.dialog-overlay {
-  @apply fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50;
   animation: fade-in 0.2s ease-out;
 }
 
-.dialog-content {
-  @apply fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl z-50;
-  @apply border border-slate-200 max-h-[90vh] overflow-auto;
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+.animate-scale-in {
   animation: scale-in 0.2s ease-out;
 }
 
-/* Dropdown menu */
-.dropdown-menu {
-  @apply absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-200/60 py-1 z-50;
+.animate-bounce-in {
+  animation: bounce-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* =============================================================================
+   Table
+   ============================================================================= */
+
+.macos-table-container {
+  @apply overflow-hidden rounded-xl border border-[#d1d1d6] bg-white;
+}
+
+.macos-table-container table {
+  @apply w-full;
+}
+
+.macos-table-container th {
+  @apply px-4 py-3 text-left text-[12px] font-semibold text-[#86868b] uppercase tracking-wider bg-[#f5f5f7] border-b border-[#d1d1d6];
+}
+
+.macos-table-container td {
+  @apply px-4 py-3.5 text-[14px] text-[#1d1d1f] border-b border-[#f5f5f7];
+}
+
+.macos-table-container tr:last-child td {
+  @apply border-b-0;
+}
+
+.macos-table-container tbody tr {
+  @apply transition-colors hover:bg-[#f5f5f7]/50;
+}
+
+/* =============================================================================
+   Dialog/Modal
+   ============================================================================= */
+
+.macos-dialog-overlay {
+  @apply fixed inset-0 bg-black/40 backdrop-blur-sm z-50;
+  animation: fade-in 0.2s ease-out;
+}
+
+.macos-dialog {
+  @apply fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 
+    bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl z-50
+    border border-[#d1d1d6] max-h-[90vh] overflow-auto min-w-[400px];
+  animation: scale-in 0.2s ease-out;
+}
+
+.macos-dialog-header {
+  @apply flex items-center justify-between p-5 border-b border-[#f5f5f7];
+}
+
+.macos-dialog-body {
+  @apply p-5;
+}
+
+.macos-dialog-footer {
+  @apply flex items-center justify-end gap-3 p-5 border-t border-[#f5f5f7] bg-[#f5f5f7]/50;
+}
+
+/* =============================================================================
+   Dropdown Menu
+   ============================================================================= */
+
+.macos-dropdown {
+  @apply absolute right-0 mt-2 w-56 bg-white/95 backdrop-blur-xl rounded-xl 
+    shadow-xl border border-[#d1d1d6] py-1 z-50 overflow-hidden;
   animation: scale-in 0.15s ease-out;
   transform-origin: top right;
 }
 
-.dropdown-item {
-  @apply flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer;
+.macos-dropdown-item {
+  @apply flex items-center gap-3 px-4 py-2.5 text-[14px] text-[#1d1d1f] 
+    hover:bg-[#007aff] hover:text-white transition-colors cursor-pointer;
 }
 
-.dropdown-item:first-child {
-  @apply rounded-t-lg;
+.macos-dropdown-separator {
+  @apply h-px bg-[#d1d1d6] my-1;
 }
 
-.dropdown-item:last-child {
-  @apply rounded-b-lg;
-}
+/* =============================================================================
+   Loading Skeleton
+   ============================================================================= */
 
-/* Sidebar nav item */
-.nav-item {
-  @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 transition-all duration-200;
-  @apply hover:bg-white/10 hover:text-white cursor-pointer;
-}
-
-.nav-item.active {
-  @apply bg-white/15 text-white;
-}
-
-.nav-item svg {
-  @apply w-5 h-5 flex-shrink-0;
-}
-
-/* Empty state */
-.empty-state {
-  @apply flex flex-col items-center justify-center py-16 text-center;
-}
-
-.empty-state-icon {
-  @apply w-16 h-16 text-slate-300 mb-4;
-}
-
-.empty-state-title {
-  @apply text-lg font-semibold text-slate-700 mb-2;
-}
-
-.empty-state-description {
-  @apply text-sm text-slate-500 max-w-sm;
-}
-
-/* Loading skeleton */
 .skeleton {
-  @apply bg-slate-200 rounded animate-pulse;
+  @apply bg-[#e8e8ea] rounded animate-pulse;
 }
 
 .skeleton-text {
-  @apply skeleton h-4 w-full;
+  @apply skeleton h-4 w-full rounded;
 }
 
 .skeleton-title {
-  @apply skeleton h-6 w-3/4;
+  @apply skeleton h-6 w-3/4 rounded;
 }
 
 .skeleton-avatar {
@@ -400,38 +368,30 @@ body {
   @apply skeleton h-32 rounded-xl;
 }
 
-/* Focus ring */
-.focus-ring {
-  @apply focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:ring-offset-2;
+/* =============================================================================
+   Empty State
+   ============================================================================= */
+
+.empty-state {
+  @apply flex flex-col items-center justify-center py-16 text-center;
 }
 
-/* Sidebar tooltip */
-.sidebar-tooltip {
-  @apply absolute left-full ml-2 px-2 py-1 bg-slate-900 text-white text-xs rounded whitespace-nowrap opacity-0 pointer-events-none transition-opacity;
+.empty-state-icon {
+  @apply w-16 h-16 text-[#c7c7cc] mb-4;
 }
 
-.nav-item:hover .sidebar-tooltip {
-  @apply opacity-100;
+.empty-state-title {
+  @apply text-[17px] font-semibold text-[#1d1d1f] mb-2;
 }
 
-/* Number formatting */
-.tabular-nums {
-  font-variant-numeric: tabular-nums;
+.empty-state-description {
+  @apply text-[14px] text-[#86868b] max-w-sm;
 }
 
-/* Selection */
-::selection {
-  @apply bg-blue-100 text-blue-900;
-}
+/* =============================================================================
+   Utilities
+   ============================================================================= */
 
-/* Print */
-@media print {
-  .no-print {
-    display: none !important;
-  }
-}
-
-/* Responsive utilities */
 @layer utilities {
   .text-balance {
     text-wrap: balance;
@@ -444,5 +404,17 @@ body {
 
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Tabular numbers for stats */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
   }
 }
