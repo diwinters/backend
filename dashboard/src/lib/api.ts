@@ -233,6 +233,73 @@ class ApiClient {
       body: JSON.stringify({ curatedCategories }),
     }, '/api/stay-posts');
   }
+
+  // Medicines
+  async getMedicines(params: { page?: number; limit?: number; search?: string; category?: string } = {}) {
+    const query = new URLSearchParams();
+    if (params.page) query.set('page', String(params.page));
+    if (params.limit) query.set('limit', String(params.limit));
+    if (params.search) query.set('search', params.search);
+    if (params.category) query.set('category', params.category);
+    return this.request<{ medicines: any[]; pagination: any }>(`/admin?${query}`, {}, '/api/medicines');
+  }
+
+  async getMedicineCategories() {
+    return this.request<{ categories: any[] }>('/admin/categories', {}, '/api/medicines');
+  }
+
+  async addMedicine(data: { name: string; price: number; quantity?: string; category?: string; description?: string; requires_prescription?: boolean }) {
+    return this.request<any>('/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }, '/api/medicines');
+  }
+
+  async updateMedicine(id: number, data: { name?: string; price?: number; quantity?: string; category?: string; description?: string; requires_prescription?: boolean; is_active?: boolean; popularity?: number }) {
+    return this.request<any>(`/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }, '/api/medicines');
+  }
+
+  async deleteMedicine(id: number) {
+    return this.request<{ message: string }>(`/${id}`, {
+      method: 'DELETE',
+    }, '/api/medicines');
+  }
+
+  async toggleMedicine(id: number) {
+    return this.request<any>(`/${id}/toggle`, {
+      method: 'POST',
+    }, '/api/medicines');
+  }
+
+  async bulkImportMedicines(medicines: any[]) {
+    return this.request<{ message: string; imported: number; skipped: number }>('/bulk', {
+      method: 'POST',
+      body: JSON.stringify({ medicines }),
+    }, '/api/medicines');
+  }
+
+  async addMedicineCategory(data: { slug: string; name: string; icon?: string; sort_order?: number }) {
+    return this.request<any>('/categories', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }, '/api/medicines');
+  }
+
+  async updateMedicineCategory(id: number, data: { name?: string; icon?: string; sort_order?: number; is_active?: boolean }) {
+    return this.request<any>(`/categories/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }, '/api/medicines');
+  }
+
+  async deleteMedicineCategory(id: number) {
+    return this.request<{ message: string }>(`/categories/${id}`, {
+      method: 'DELETE',
+    }, '/api/medicines');
+  }
 }
 
 export const api = new ApiClient();

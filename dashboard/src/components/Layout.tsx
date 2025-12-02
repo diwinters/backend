@@ -16,6 +16,7 @@ import {
   Map,
   Building2,
   CheckCircle,
+  Pill,
 } from 'lucide-react';
 
 interface NavItem {
@@ -33,6 +34,7 @@ const navItems: NavItem[] = [
   { name: 'Pricing', path: '/pricing', icon: <DollarSign className="w-5 h-5" /> },
   { name: 'Stays', path: '/stays', icon: <Building2 className="w-5 h-5" /> },
   { name: 'Stay Post Approval', path: '/stay-posts', icon: <CheckCircle className="w-5 h-5" /> },
+  { name: 'Medicines', path: '/medicines', icon: <Pill className="w-5 h-5" /> },
   { name: 'Users', path: '/users', icon: <Users className="w-5 h-5" /> },
   { name: 'Debug', path: '/debug', icon: <Bug className="w-5 h-5" /> },
 ];

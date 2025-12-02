@@ -12,6 +12,7 @@ import adminRouter from './routes/admin';
 import pricingRouter from './routes/pricing';
 import staysRouter from './routes/stays';
 import stayPostsRouter from './routes/stay-posts';
+import medicinesRouter from './routes/medicines';
 
 // Load environment variables
 dotenv.config();
@@ -54,6 +55,7 @@ app.use('/api/admin', adminRouter);
 app.use('/api/pricing', pricingRouter);
 app.use('/api/stays', staysRouter);
 app.use('/api/stay-posts', stayPostsRouter);
+app.use('/api/medicines', medicinesRouter);
 
 // Serve admin dashboard static files
 const dashboardPath = path.join(__dirname, '../dashboard/dist');
