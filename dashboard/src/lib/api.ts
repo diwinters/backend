@@ -425,6 +425,88 @@ class ApiClient {
       body: JSON.stringify({ boundary }),
     }, '/api/cities');
   }
+
+  // Feeds Management
+  async getFeeds() {
+    return this.request<{ feeds: any[] }>('/admin', {}, '/api/feeds');
+  }
+
+  async getFeed(id: number) {
+    return this.request<{ feed: any }>(`/${id}`, {}, '/api/feeds');
+  }
+
+  async createFeed(data: {
+    name: string;
+    name_ar?: string;
+    feed_uri?: string;
+    feed_type?: string;
+    description?: string;
+    description_ar?: string;
+    icon?: string;
+    color?: string;
+    sort_order?: number;
+    is_pinned?: boolean;
+    is_default?: boolean;
+    is_active?: boolean;
+    city_id?: number | null;
+  }) {
+    return this.request<{ feed: any }>('/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }, '/api/feeds');
+  }
+
+  async updateFeed(id: number, data: {
+    name?: string;
+    name_ar?: string;
+    feed_uri?: string;
+    feed_type?: string;
+    description?: string;
+    description_ar?: string;
+    icon?: string;
+    color?: string;
+    sort_order?: number;
+    is_pinned?: boolean;
+    is_default?: boolean;
+    is_active?: boolean;
+    city_id?: number | null;
+  }) {
+    return this.request<{ feed: any }>(`/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }, '/api/feeds');
+  }
+
+  async deleteFeed(id: number) {
+    return this.request<{ message: string }>(`/${id}`, {
+      method: 'DELETE',
+    }, '/api/feeds');
+  }
+
+  async toggleFeedActive(id: number) {
+    return this.request<{ feed: any }>(`/${id}/toggle`, {
+      method: 'POST',
+    }, '/api/feeds');
+  }
+
+  async toggleFeedPinned(id: number) {
+    return this.request<{ feed: any }>(`/${id}/toggle-pinned`, {
+      method: 'POST',
+    }, '/api/feeds');
+  }
+
+  async setFeedDefault(id: number) {
+    return this.request<{ feed: any }>(`/${id}/set-default`, {
+      method: 'POST',
+    }, '/api/feeds');
+  }
+
+  async reorderFeeds(feeds: { id: number; sort_order: number }[]) {
+    return this.request<{ feeds: any[] }>('/reorder', {
+      method: 'POST',
+      body: JSON.stringify({ feeds }),
+    }, '/api/feeds');
+  }
 }
 
 export const api = new ApiClient();

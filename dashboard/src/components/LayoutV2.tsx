@@ -188,6 +188,7 @@ const modules: AppModule[] = [
     path: '/cities',
     items: [
       { id: 'cities', label: 'Cities', icon: Icons.globe, path: '/cities' },
+      { id: 'feeds', label: 'Feeds', icon: Icons.layers, path: '/feeds' },
       { id: 'users', label: 'Users', icon: Icons.users, path: '/users' },
       { id: 'debug', label: 'System', icon: Icons.bug, path: '/debug' },
     ],
